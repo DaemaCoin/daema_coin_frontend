@@ -1,6 +1,14 @@
 {
   "name": "daemacoin-frontend",
-  "version": "0.1.0",
+  "version": "1.0.0",
+  "description": "GitHub 커밋을 통해 코인을 채굴하는 혁신적인 서비스",
+  "author": "대마코인 팀",
+  "license": "MIT",
+  "keywords": ["대마코인", "GitHub", "채굴", "코인", "개발자", "DMC"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-repo/daemacoin-frontend.git"
+  },
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
@@ -11,17 +19,24 @@
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.3.3"
+    "next": "15.3.3",
+    "lucide-react": "^0.468.0",
+    "date-fns": "^4.1.0",
+    "zustand": "^5.0.2",
+    "axios": "^1.7.9",
+    "next-auth": "^4.24.11",
+    "clsx": "^2.1.1"
   },
   "devDependencies": {
     "typescript": "^5",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
-    "eslint": "^9",
-    "eslint-config-next": "15.3.3",
-    "@eslint/eslintrc": "^3"
+    "@types/next-auth": "^3.15.0",
+    "postcss": "^8",
+    "tailwindcss": "^3.4.0",
+    "autoprefixer": "^10.0.1",
+    "eslint": "^8",
+    "eslint-config-next": "15.3.3"
   }
 }
