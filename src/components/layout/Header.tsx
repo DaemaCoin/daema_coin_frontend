@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Image from 'next/image';
 import { Coins, User, LogOut, Settings } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import Button from '@/components/ui/Button';
@@ -38,9 +39,11 @@ const Header: React.FC = () => {
               {/* 사용자 프로필 */}
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden">
-                  <img
+                  <Image
                     src={user.avatar || '/default-avatar.svg'}
                     alt={user.name}
+                    width={32}
+                    height={32}
                     className="w-full h-full object-cover"
                   />
                 </div>

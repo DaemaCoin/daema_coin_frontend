@@ -12,7 +12,7 @@ const GitHubAuthPage: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
   const [message, setMessage] = useState('GitHub 연동을 처리하고 있습니다...');
   
-  const { registerWithGithub, isLoading, error } = useAuthStore();
+  const { registerWithGithub, error } = useAuthStore();
 
   useEffect(() => {
     const handleCallback = async () => {
@@ -43,10 +43,10 @@ const GitHubAuthPage: React.FC = () => {
           setStatus('error');
           setMessage(error || '회원가입에 실패했습니다. 다시 시도해주세요.');
         }
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('GitHub OAuth 처리 중 오류:', err);
         setStatus('error');
-        setMessage(err.message || '처리 중 오류가 발생했습니다.');
+        setMessage(err instanceof Error ? err.message : '처리 중 오류가 발생했습니다.');
       }
     };
 

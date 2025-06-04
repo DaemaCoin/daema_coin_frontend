@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, Pause, Coins, GitCommit, Calendar, Trophy, TrendingUp } from 'lucide-react';
+import { Play, Pause, Coins, GitCommit, Trophy, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useMiningStore } from '@/stores/miningStore';
@@ -15,7 +15,6 @@ const MiningDashboard: React.FC = () => {
     isActive, 
     currentSession, 
     recentCommits, 
-    totalEarned, 
     startMining, 
     stopMining,
     addCommit 

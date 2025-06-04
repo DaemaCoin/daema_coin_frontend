@@ -66,9 +66,9 @@ export const useAuthStore = create<AuthStore>()(
             });
             return false;
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           set({ 
-            error: error.message || 'XQUARE 로그인 중 오류가 발생했습니다.',
+            error: error instanceof Error ? error.message : 'XQUARE 로그인 중 오류가 발생했습니다.',
             isLoading: false 
           });
           return false;
@@ -132,10 +132,10 @@ export const useAuthStore = create<AuthStore>()(
             });
             return false;
           }
-        } catch (error: any) {
+        } catch (error: unknown) {
           console.error('회원가입 처리 중 오류:', error);
           set({ 
-            error: error.message || '회원가입 중 오류가 발생했습니다.',
+            error: error instanceof Error ? error.message : '회원가입 중 오류가 발생했습니다.',
             isLoading: false 
           });
           return false;

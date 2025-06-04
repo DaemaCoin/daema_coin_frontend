@@ -32,7 +32,7 @@ api.interceptors.response.use(
           // 리프레시 토큰으로 새 액세스 토큰 발급
           // 실제 리프레시 API가 있다면 여기서 호출
           console.log('토큰 만료, 리프레시 필요');
-        } catch (refreshError) {
+        } catch {
           // 리프레시 실패 시 로그아웃
           localStorage.removeItem('accessToken');
           localStorage.removeItem('refreshToken');
@@ -52,10 +52,12 @@ export const xquareLogin = async (accountId: string, password: string) => {
       password,
     });
     return { success: true, data: response.data };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return { 
       success: false, 
-      error: error.response?.data?.message || '로그인에 실패했습니다.' 
+      error: axios.isAxiosError(error) && error.response?.data?.message 
+        ? error.response.data.message 
+        : '로그인에 실패했습니다.' 
     };
   }
 };
@@ -70,11 +72,15 @@ export const register = async (xquareId: string, code: string) => {
       code,
     });
     return { success: true, data: response.data };
-  } catch (error: any) {
-    console.error('Register API 오류:', error.response?.data || error.message);
+  } catch (error: unknown) {
+    console.error('Register API 오류:', error);
     return { 
       success: false, 
-      error: error.response?.data?.message || error.response?.data?.error || '회원가입에 실패했습니다.' 
+      error: axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message 
+        : axios.isAxiosError(error) && error.response?.data?.error
+        ? error.response.data.error
+        : '회원가입에 실패했습니다.' 
     };
   }
 };
