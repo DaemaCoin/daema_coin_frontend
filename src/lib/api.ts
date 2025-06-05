@@ -146,4 +146,20 @@ export const getWalletInfo = async () => {
   }
 };
 
+// 사용자 정보 조회 API
+export const getUserInfo = async () => {
+  try {
+    const response = await api.get('/auth/user');
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    console.error('User API 오류:', error);
+    return { 
+      success: false, 
+      error: axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message 
+        : '사용자 정보 조회에 실패했습니다.' 
+    };
+  }
+};
+
 export { GITHUB_LOGIN_URL }; 

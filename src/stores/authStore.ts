@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { AuthState, User, XquareLoginForm, WalletInfo } from '@/types';
+import { AuthState, User, XquareLoginForm, WalletInfo, UserProfile } from '@/types';
 import { 
   xquareLogin, 
   register, 
@@ -9,13 +9,17 @@ import {
   saveTemporaryXquareId,
   getTemporaryXquareId,
   clearTemporaryXquareId,
-  getWalletInfo
+  getWalletInfo,
+  getUserInfo
 } from '@/lib/api';
 
 interface AuthStore extends AuthState {
   // 지갑 정보
   walletInfo: WalletInfo | null;
   walletPollingInterval: NodeJS.Timeout | null;
+  
+  // 사용자 프로필 정보
+  userProfile: UserProfile | null;
   
   // 로그인 액션들
   loginWithXquare: (formData: XquareLoginForm) => Promise<boolean>;
@@ -39,6 +43,9 @@ interface AuthStore extends AuthState {
   updateWalletBalance: (balance: number) => void;
   startWalletPolling: () => void;
   stopWalletPolling: () => void;
+  
+  // 사용자 프로필 관리
+  fetchUserProfile: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -55,6 +62,7 @@ export const useAuthStore = create<AuthStore>()(
       refreshToken: null,
       walletInfo: null,
       walletPollingInterval: null,
+      userProfile: null,
 
       // XQUARE 로그인
       loginWithXquare: async (formData: XquareLoginForm) => {
@@ -96,6 +104,9 @@ export const useAuthStore = create<AuthStore>()(
               
               // 지갑 정보 조회
               get().fetchWalletInfo();
+              
+              // 사용자 프로필 정보 조회
+              get().fetchUserProfile();
               
               // 지갑 정보 자동 폴링 시작
               get().startWalletPolling();
@@ -182,6 +193,9 @@ export const useAuthStore = create<AuthStore>()(
             // 지갑 정보 조회
             get().fetchWalletInfo();
             
+            // 사용자 프로필 정보 조회
+            get().fetchUserProfile();
+            
             // 지갑 정보 자동 폴링 시작
             get().startWalletPolling();
             
@@ -220,7 +234,8 @@ export const useAuthStore = create<AuthStore>()(
           accessToken: null,
           refreshToken: null,
           walletInfo: null,
-          walletPollingInterval: null
+          walletPollingInterval: null,
+          userProfile: null
         });
       },
 
@@ -267,7 +282,8 @@ export const useAuthStore = create<AuthStore>()(
           accessToken: null,
           refreshToken: null,
           walletInfo: null,
-          walletPollingInterval: null
+          walletPollingInterval: null,
+          userProfile: null
         });
       },
 
@@ -327,6 +343,23 @@ export const useAuthStore = create<AuthStore>()(
           clearInterval(intervalId);
           set({ walletPollingInterval: null });
         }
+      },
+
+      // 사용자 프로필 관리
+      fetchUserProfile: async () => {
+        try {
+          const result = await getUserInfo();
+          if (result.success && result.data) {
+            console.log('사용자 프로필 정보 조회 성공');
+            set({ userProfile: result.data });
+          } else {
+            console.error('사용자 프로필 정보 조회 실패:', result.error);
+            set({ error: result.error || '사용자 프로필 정보 조회에 실패했습니다.' });
+          }
+        } catch (error: unknown) {
+          console.error('사용자 프로필 정보 조회 실패:', error);
+          set({ error: error instanceof Error ? error.message : '사용자 프로필 정보 조회 실패' });
+        }
       }
     }),
     {
@@ -337,7 +370,8 @@ export const useAuthStore = create<AuthStore>()(
         isAuthenticated: state.isAuthenticated,
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
-        walletInfo: state.walletInfo
+        walletInfo: state.walletInfo,
+        userProfile: state.userProfile
       })
     }
   )

@@ -119,4 +119,11 @@ export interface ApiResponse<T> {
 export interface XquareLoginForm {
   accountId: string;
   password: string;
+}
+
+export interface UserProfile {
+  id: string;
+  githubId: string;
+  githubImageUrl: string;
+  totalCommits: number;
 } 

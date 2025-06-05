@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import Button from '@/components/ui/Button';
 
 const Header: React.FC = () => {
-  const { user, logout, isAuthenticated, walletInfo } = useAuthStore();
+  const { user, logout, isAuthenticated, walletInfo, userProfile } = useAuthStore();
 
   const handleLogout = () => {
     logout();
@@ -40,16 +40,20 @@ const Header: React.FC = () => {
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 rounded-full overflow-hidden">
                   <Image
-                    src={user.avatar || '/default-avatar.svg'}
-                    alt={user.name}
+                    src={userProfile?.githubImageUrl || user.avatar || '/default-avatar.svg'}
+                    alt={userProfile?.githubId || user.name}
                     width={32}
                     height={32}
                     className="w-full h-full object-cover"
                   />
                 </div>
                 <div className="hidden sm:block">
-                  <p className="text-sm font-medium text-gray-900">{user.name}</p>
-                  <p className="text-xs text-gray-500">@{user.githubUsername}</p>
+                  <p className="text-sm font-medium text-gray-900">
+                    {userProfile?.githubId || user.name}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    @{userProfile?.githubId || user.githubUsername}
+                  </p>
                 </div>
               </div>
 
