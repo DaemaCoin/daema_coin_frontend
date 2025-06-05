@@ -15,6 +15,7 @@ import {
 interface AuthStore extends AuthState {
   // 지갑 정보
   walletInfo: WalletInfo | null;
+  walletPollingInterval: NodeJS.Timeout | null;
   
   // 로그인 액션들
   loginWithXquare: (formData: XquareLoginForm) => Promise<boolean>;
@@ -36,6 +37,8 @@ interface AuthStore extends AuthState {
   // 지갑 정보 관리
   fetchWalletInfo: () => Promise<void>;
   updateWalletBalance: (balance: number) => void;
+  startWalletPolling: () => void;
+  stopWalletPolling: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -51,6 +54,7 @@ export const useAuthStore = create<AuthStore>()(
       accessToken: null,
       refreshToken: null,
       walletInfo: null,
+      walletPollingInterval: null,
 
       // XQUARE 로그인
       loginWithXquare: async (formData: XquareLoginForm) => {
@@ -92,6 +96,9 @@ export const useAuthStore = create<AuthStore>()(
               
               // 지갑 정보 조회
               get().fetchWalletInfo();
+              
+              // 지갑 정보 자동 폴링 시작
+              get().startWalletPolling();
               
               return true;
             } else {
@@ -175,6 +182,9 @@ export const useAuthStore = create<AuthStore>()(
             // 지갑 정보 조회
             get().fetchWalletInfo();
             
+            // 지갑 정보 자동 폴링 시작
+            get().startWalletPolling();
+            
             return true;
           } else {
             set({ 
@@ -195,6 +205,9 @@ export const useAuthStore = create<AuthStore>()(
 
       // 로그아웃
       logout: () => {
+        // 지갑 폴링 중지
+        get().stopWalletPolling();
+        
         clearTokens();
         clearTemporaryXquareId();
         set({
@@ -206,7 +219,8 @@ export const useAuthStore = create<AuthStore>()(
           githubInfo: null,
           accessToken: null,
           refreshToken: null,
-          walletInfo: null
+          walletInfo: null,
+          walletPollingInterval: null
         });
       },
 
@@ -240,6 +254,9 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       clearAuth: () => {
+        // 지갑 폴링 중지
+        get().stopWalletPolling();
+        
         clearTokens();
         clearTemporaryXquareId();
         set({
@@ -249,7 +266,8 @@ export const useAuthStore = create<AuthStore>()(
           githubInfo: null,
           accessToken: null,
           refreshToken: null,
-          walletInfo: null
+          walletInfo: null,
+          walletPollingInterval: null
         });
       },
 
@@ -258,9 +276,17 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const result = await getWalletInfo();
           if (result.success && result.data) {
+            console.log(`💰 지갑 잔액: ${result.data.balance} DMC`);
             set({ walletInfo: result.data });
           } else {
             console.error('지갑 정보 조회 실패:', result.error);
+            
+            // 인증 오류인 경우 폴링 중지
+            if (result.error?.includes('401') || result.error?.includes('인증')) {
+              console.log('인증 오류로 인한 지갑 폴링 중지');
+              get().stopWalletPolling();
+            }
+            
             set({ error: result.error || '지갑 정보 조회에 실패했습니다.' });
           }
         } catch (error: unknown) {
@@ -275,6 +301,31 @@ export const useAuthStore = create<AuthStore>()(
           set({
             walletInfo: { ...currentWalletInfo, balance }
           });
+        }
+      },
+
+      startWalletPolling: () => {
+        if (get().walletPollingInterval) {
+          console.warn('지갑 폴링이 이미 시작되었습니다.');
+          return;
+        }
+
+        console.log('🪙 지갑 정보 자동 폴링 시작 (1초 간격)');
+        
+        const intervalId = setInterval(() => {
+          console.log('🔄 지갑 정보 조회 중...');
+          get().fetchWalletInfo();
+        }, 1000);
+
+        set({ walletPollingInterval: intervalId });
+      },
+
+      stopWalletPolling: () => {
+        const intervalId = get().walletPollingInterval;
+        if (intervalId) {
+          console.log('⏹️ 지갑 정보 폴링 중지');
+          clearInterval(intervalId);
+          set({ walletPollingInterval: null });
         }
       }
     }),

@@ -10,7 +10,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
 const MiningDashboard: React.FC = () => {
-  const { user, walletInfo, fetchWalletInfo } = useAuthStore();
+  const { user, walletInfo } = useAuthStore();
   const { 
     isActive, 
     currentSession, 
@@ -21,13 +21,6 @@ const MiningDashboard: React.FC = () => {
   } = useMiningStore();
 
   const [showAnimation, setShowAnimation] = useState(false);
-
-  // 컴포넌트 마운트 시 지갑 정보 조회
-  React.useEffect(() => {
-    if (user && !walletInfo) {
-      fetchWalletInfo();
-    }
-  }, [user, walletInfo, fetchWalletInfo]);
 
   const handleMining = () => {
     if (isActive) {
@@ -59,11 +52,6 @@ const MiningDashboard: React.FC = () => {
       addCommit(demoCommit);
       setShowAnimation(true);
       setTimeout(() => setShowAnimation(false), 1000);
-      
-      // 채굴 후 지갑 정보 업데이트
-      setTimeout(() => {
-        fetchWalletInfo();
-      }, 1500);
     }, 2000);
   };
 
