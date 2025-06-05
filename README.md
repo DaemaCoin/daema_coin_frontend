@@ -106,6 +106,9 @@ Response:
 GET https://github.com/login/oauth/authorize?client_id=Ov23liHgU8D73ZmDOReG&scope=write:repo_hook%20public_repo
 ```
 
+
+
+
 ## 🛠️ 기술 스택
 
 ### Frontend

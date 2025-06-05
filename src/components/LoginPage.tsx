@@ -7,6 +7,7 @@ import { startGithubOAuth } from '@/lib/api';
 import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
+import { useRouter } from 'next/navigation';
 
 type LoginStep = 'xquare' | 'github';
 
@@ -25,16 +26,26 @@ const LoginPage: React.FC = () => {
     isLoading, 
     error, 
     xquareId, 
+    isAuthenticated,
     loginWithXquare, 
     clearError 
   } = useAuthStore();
 
-  // XQUARE 로그인 성공 시 GitHub 단계로 이동
+  const router = useRouter();
+
+  // 이미 로그인된 사용자는 메인 페이지로 리다이렉트
   useEffect(() => {
-    if (xquareId && step === 'xquare') {
+    if (isAuthenticated) {
+      router.push('/');
+    }
+  }, [isAuthenticated, router]);
+
+  // XQUARE 로그인 성공 시 GitHub 단계로 이동 (아직 회원가입이 안 된 경우만)
+  useEffect(() => {
+    if (xquareId && step === 'xquare' && !isAuthenticated) {
       setStep('github');
     }
-  }, [xquareId, step]);
+  }, [xquareId, step, isAuthenticated]);
 
   // 폼 유효성 검사
   const validateForm = () => {

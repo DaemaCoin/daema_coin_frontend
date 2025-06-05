@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { AuthState, User, XquareLoginForm } from '@/types';
+import { AuthState, User, XquareLoginForm, WalletInfo } from '@/types';
 import { 
   xquareLogin, 
   register, 
@@ -8,10 +8,14 @@ import {
   clearTokens, 
   saveTemporaryXquareId,
   getTemporaryXquareId,
-  clearTemporaryXquareId
+  clearTemporaryXquareId,
+  getWalletInfo
 } from '@/lib/api';
 
 interface AuthStore extends AuthState {
+  // 지갑 정보
+  walletInfo: WalletInfo | null;
+  
   // 로그인 액션들
   loginWithXquare: (formData: XquareLoginForm) => Promise<boolean>;
   registerWithGithub: (githubCode: string) => Promise<boolean>;
@@ -28,6 +32,10 @@ interface AuthStore extends AuthState {
   // 토큰 관리
   setTokens: (accessToken: string, refreshToken: string) => void;
   clearAuth: () => void;
+  
+  // 지갑 정보 관리
+  fetchWalletInfo: () => Promise<void>;
+  updateWalletBalance: (balance: number) => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -42,6 +50,7 @@ export const useAuthStore = create<AuthStore>()(
       githubInfo: null,
       accessToken: null,
       refreshToken: null,
+      walletInfo: null,
 
       // XQUARE 로그인
       loginWithXquare: async (formData: XquareLoginForm) => {
@@ -51,14 +60,53 @@ export const useAuthStore = create<AuthStore>()(
           const result = await xquareLogin(formData.accountId, formData.password);
           
           if (result.success && result.data) {
-            // xquareId를 세션 스토리지에 임시 저장
-            saveTemporaryXquareId(result.data.xquareId);
-            
-            set({ 
-              xquareId: result.data.xquareId,
-              isLoading: false 
-            });
-            return true;
+            // 이미 회원가입된 사용자인 경우 (accessToken과 refreshToken이 있는 경우)
+            if (result.data.accessToken && result.data.refreshToken) {
+              console.log('이미 회원가입된 사용자 - 바로 로그인 처리');
+              
+              // 토큰 저장
+              saveTokens(result.data.accessToken, result.data.refreshToken);
+              
+              // 사용자 정보 생성 (백엔드에서 제공하는 데이터 사용)
+              const user: User = {
+                id: result.data.userId || 'user_' + Date.now(),
+                xquareId: result.data.xquareId || formData.accountId,
+                githubId: result.data.githubId || result.data.githubUsername || '',
+                githubUsername: result.data.githubUsername || '',
+                avatar: result.data.avatar || '/default-avatar.png',
+                name: result.data.name || result.data.githubUsername || formData.accountId,
+                email: result.data.email || `${result.data.githubUsername || formData.accountId}@github.local`,
+                totalCoins: result.data.totalCoins || 0,
+                createdAt: result.data.createdAt || new Date().toISOString(),
+                lastMiningAt: result.data.lastMiningAt
+              };
+
+              set({ 
+                user,
+                isAuthenticated: true,
+                accessToken: result.data.accessToken,
+                refreshToken: result.data.refreshToken,
+                xquareId: result.data.xquareId || formData.accountId,
+                isLoading: false 
+              });
+              
+              // 지갑 정보 조회
+              get().fetchWalletInfo();
+              
+              return true;
+            } else {
+              // 신규 사용자인 경우 (xquareId만 있는 경우) - 기존 로직
+              console.log('신규 사용자 - GitHub 로그인으로 진행');
+              
+              // xquareId를 세션 스토리지에 임시 저장
+              saveTemporaryXquareId(result.data.xquareId);
+              
+              set({ 
+                xquareId: result.data.xquareId,
+                isLoading: false 
+              });
+              return true;
+            }
           } else {
             set({ 
               error: result.error || 'XQUARE 로그인에 실패했습니다.',
@@ -124,6 +172,9 @@ export const useAuthStore = create<AuthStore>()(
               isLoading: false 
             });
             
+            // 지갑 정보 조회
+            get().fetchWalletInfo();
+            
             return true;
           } else {
             set({ 
@@ -154,7 +205,8 @@ export const useAuthStore = create<AuthStore>()(
           xquareId: null,
           githubInfo: null,
           accessToken: null,
-          refreshToken: null
+          refreshToken: null,
+          walletInfo: null
         });
       },
 
@@ -196,8 +248,34 @@ export const useAuthStore = create<AuthStore>()(
           xquareId: null,
           githubInfo: null,
           accessToken: null,
-          refreshToken: null
+          refreshToken: null,
+          walletInfo: null
         });
+      },
+
+      // 지갑 정보 관리
+      fetchWalletInfo: async () => {
+        try {
+          const result = await getWalletInfo();
+          if (result.success && result.data) {
+            set({ walletInfo: result.data });
+          } else {
+            console.error('지갑 정보 조회 실패:', result.error);
+            set({ error: result.error || '지갑 정보 조회에 실패했습니다.' });
+          }
+        } catch (error: unknown) {
+          console.error('지갑 정보 가져오기 실패:', error);
+          set({ error: error instanceof Error ? error.message : '지갑 정보 가져오기 실패' });
+        }
+      },
+
+      updateWalletBalance: (balance: number) => {
+        const currentWalletInfo = get().walletInfo;
+        if (currentWalletInfo) {
+          set({
+            walletInfo: { ...currentWalletInfo, balance }
+          });
+        }
       }
     }),
     {
@@ -207,7 +285,8 @@ export const useAuthStore = create<AuthStore>()(
         user: state.user,
         isAuthenticated: state.isAuthenticated,
         accessToken: state.accessToken,
-        refreshToken: state.refreshToken
+        refreshToken: state.refreshToken,
+        walletInfo: state.walletInfo
       })
     }
   )

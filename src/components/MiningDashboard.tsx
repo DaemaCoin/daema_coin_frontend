@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Play, Pause, Coins, GitCommit, Trophy, TrendingUp } from 'lucide-react';
+import { Play, Pause, Coins, GitCommit, Trophy } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { useMiningStore } from '@/stores/miningStore';
@@ -10,7 +10,7 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 
 const MiningDashboard: React.FC = () => {
-  const { user } = useAuthStore();
+  const { user, walletInfo, fetchWalletInfo } = useAuthStore();
   const { 
     isActive, 
     currentSession, 
@@ -21,6 +21,13 @@ const MiningDashboard: React.FC = () => {
   } = useMiningStore();
 
   const [showAnimation, setShowAnimation] = useState(false);
+
+  // 컴포넌트 마운트 시 지갑 정보 조회
+  React.useEffect(() => {
+    if (user && !walletInfo) {
+      fetchWalletInfo();
+    }
+  }, [user, walletInfo, fetchWalletInfo]);
 
   const handleMining = () => {
     if (isActive) {
@@ -52,6 +59,11 @@ const MiningDashboard: React.FC = () => {
       addCommit(demoCommit);
       setShowAnimation(true);
       setTimeout(() => setShowAnimation(false), 1000);
+      
+      // 채굴 후 지갑 정보 업데이트
+      setTimeout(() => {
+        fetchWalletInfo();
+      }, 1500);
     }, 2000);
   };
 
@@ -107,7 +119,7 @@ const MiningDashboard: React.FC = () => {
       </div>
 
       {/* 통계 카드들 */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <Card>
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-yellow-100 rounded-xl flex items-center justify-center">
@@ -116,21 +128,7 @@ const MiningDashboard: React.FC = () => {
             <div>
               <p className="text-sm text-gray-600">총 보유 코인</p>
               <p className="text-2xl font-bold text-gray-900">
-                {user?.totalCoins.toLocaleString() || 0} DMC
-              </p>
-            </div>
-          </div>
-        </Card>
-
-        <Card>
-          <div className="flex items-center space-x-4">
-            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-              <TrendingUp className="w-6 h-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-gray-600">이번 세션</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {currentSession?.totalCoins || 0} DMC
+                {walletInfo?.balance?.toLocaleString() || 0} DMC
               </p>
             </div>
           </div>

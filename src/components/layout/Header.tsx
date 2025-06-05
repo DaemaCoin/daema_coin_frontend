@@ -7,7 +7,7 @@ import { useAuthStore } from '@/stores/authStore';
 import Button from '@/components/ui/Button';
 
 const Header: React.FC = () => {
-  const { user, logout, isAuthenticated } = useAuthStore();
+  const { user, logout, isAuthenticated, walletInfo } = useAuthStore();
 
   const handleLogout = () => {
     logout();
@@ -32,7 +32,7 @@ const Header: React.FC = () => {
               <div className="flex items-center space-x-2 bg-gray-50 px-4 py-2 rounded-xl">
                 <Coins className="w-4 h-4 text-yellow-500" />
                 <span className="font-semibold text-gray-900">
-                  {user.totalCoins.toLocaleString()} DMC
+                  {walletInfo?.balance?.toLocaleString() || 0} DMC
                 </span>
               </div>
 

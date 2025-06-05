@@ -76,8 +76,24 @@ export interface MiningState {
   error: string | null;
 }
 
+export interface WalletInfo {
+  owner: string;
+  balance: number;
+}
+
 export interface XquareLoginResponse {
   xquareId: string;
+  accessToken?: string;
+  refreshToken?: string;
+  userId?: string;
+  githubId?: string;
+  githubUsername?: string;
+  avatar?: string;
+  name?: string;
+  email?: string;
+  totalCoins?: number;
+  createdAt?: string;
+  lastMiningAt?: string;
 }
 
 export interface RegisterResponse {

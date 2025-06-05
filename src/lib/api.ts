@@ -130,4 +130,20 @@ export const clearTokens = () => {
   localStorage.removeItem('refreshToken');
 };
 
+// 지갑 정보 조회 API
+export const getWalletInfo = async () => {
+  try {
+    const response = await api.get('/wallet');
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    console.error('Wallet API 오류:', error);
+    return { 
+      success: false, 
+      error: axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message 
+        : '지갑 정보 조회에 실패했습니다.' 
+    };
+  }
+};
+
 export { GITHUB_LOGIN_URL }; 
