@@ -310,12 +310,12 @@ export const useAuthStore = create<AuthStore>()(
           return;
         }
 
-        console.log('🪙 지갑 정보 자동 폴링 시작 (1초 간격)');
+        console.log('🪙 지갑 정보 자동 폴링 시작 (3초 간격)');
         
         const intervalId = setInterval(() => {
           console.log('🔄 지갑 정보 조회 중...');
           get().fetchWalletInfo();
-        }, 1000);
+        }, 3000);
 
         set({ walletPollingInterval: intervalId });
       },
