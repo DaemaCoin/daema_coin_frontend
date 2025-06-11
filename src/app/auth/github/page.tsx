@@ -92,7 +92,7 @@ const GitHubAuthPage: React.FC = () => {
                   <span className="font-medium text-yellow-800">시작 보너스</span>
                 </div>
                 <p className="text-sm text-yellow-700">
-                  첫 로그인 보너스로 <span className="font-bold">1,250 DMC</span>를 받았습니다!
+                  첫 로그인 보너스로 <span className="font-bold">50 DMC</span>를 받았습니다!
                 </p>
               </div>
             </>

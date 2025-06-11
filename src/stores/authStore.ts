@@ -10,8 +10,18 @@ import {
   getTemporaryXquareId,
   clearTemporaryXquareId,
   getWalletInfo,
-  getUserInfo
+  getUserInfo,
+  getWalletHistory
 } from '@/lib/api';
+
+// WalletHistoryItem 타입 정의
+export interface WalletHistoryItem {
+  id: string;
+  amount: number;
+  message: string;
+  repoName: string;
+  createdAt: string;
+}
 
 interface AuthStore extends AuthState {
   // 지갑 정보
@@ -46,6 +56,10 @@ interface AuthStore extends AuthState {
   
   // 사용자 프로필 관리
   fetchUserProfile: () => Promise<void>;
+  
+  // 최근 커밋 내역(지갑 history)
+  history: WalletHistoryItem[];
+  fetchWalletHistory: (page?: number) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -116,14 +130,14 @@ export const useAuthStore = create<AuthStore>()(
               // 신규 사용자인 경우 (xquareId만 있는 경우) - 기존 로직
               console.log('신규 사용자 - GitHub 로그인으로 진행');
               
-              // xquareId를 세션 스토리지에 임시 저장
-              saveTemporaryXquareId(result.data.xquareId);
-              
-              set({ 
-                xquareId: result.data.xquareId,
-                isLoading: false 
-              });
-              return true;
+            // xquareId를 세션 스토리지에 임시 저장
+            saveTemporaryXquareId(result.data.xquareId);
+            
+            set({ 
+              xquareId: result.data.xquareId,
+              isLoading: false 
+            });
+            return true;
             }
           } else {
             set({ 
@@ -177,7 +191,7 @@ export const useAuthStore = create<AuthStore>()(
               avatar: registerResult.data.avatar || '/default-avatar.png',
               name: registerResult.data.name || registerResult.data.githubUsername,
               email: registerResult.data.email || `${registerResult.data.githubUsername}@github.local`,
-              totalCoins: registerResult.data.totalCoins || 1250, // 시작 보너스
+              totalCoins: registerResult.data.totalCoins || 50, // 시작 보너스
               createdAt: registerResult.data.createdAt || new Date().toISOString(),
               lastMiningAt: registerResult.data.lastMiningAt
             };
@@ -360,7 +374,22 @@ export const useAuthStore = create<AuthStore>()(
           console.error('사용자 프로필 정보 조회 실패:', error);
           set({ error: error instanceof Error ? error.message : '사용자 프로필 정보 조회 실패' });
         }
-      }
+      },
+
+      // 최근 커밋 내역(지갑 history)
+      history: [],
+      fetchWalletHistory: async (page = 0) => {
+        try {
+          const result = await getWalletHistory(page);
+          if (result.success && result.data) {
+            set({ history: result.data.history });
+          } else {
+            set({ error: result.error || '지갑 내역 조회에 실패했습니다.' });
+          }
+        } catch (error: unknown) {
+          set({ error: error instanceof Error ? error.message : '지갑 내역 조회 실패' });
+        }
+      },
     }),
     {
       name: 'auth-storage',

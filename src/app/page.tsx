@@ -16,12 +16,12 @@ export default function Home() {
       {!isAuthenticated || !user ? (
         <LoginPage />
       ) : (
-        <div className="min-h-screen bg-gray-50">
-          <Header />
-          <main>
-            <MiningDashboard />
-          </main>
-        </div>
+    <div className="min-h-screen bg-gray-50">
+      <Header />
+      <main>
+        <MiningDashboard />
+      </main>
+    </div>
       )}
     </>
   );

@@ -162,4 +162,18 @@ export const getUserInfo = async () => {
   }
 };
 
+// 지갑 내역(커밋 히스토리) 조회 API
+export const getWalletHistory = async (page = 0) => {
+  try {
+    const response = await api.get(`/wallet/history?page=${page}`);
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    console.error('Wallet History API 오류:', error);
+    return {
+      success: false,
+      error: (error as any)?.response?.data?.message || '지갑 내역 조회에 실패했습니다.'
+    };
+  }
+};
+
 export { GITHUB_LOGIN_URL }; 
