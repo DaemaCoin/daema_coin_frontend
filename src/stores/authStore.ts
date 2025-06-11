@@ -157,6 +157,10 @@ export const useAuthStore = create<AuthStore>()(
 
       // GitHub code로 회원가입 완료
       registerWithGithub: async (githubCode: string) => {
+        // 이미 로딩 중이거나 에러가 있으면 중복 호출 방지
+        if (get().isLoading || get().error) {
+          return false;
+        }
         set({ isLoading: true, error: null });
         
         // 임시 저장된 xquareId 가져오기
