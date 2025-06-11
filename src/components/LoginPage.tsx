@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Github, Shield, Coins, ChevronRight, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { useAuthStore } from '@/stores/authStore';
 import { startGithubOAuth } from '@/lib/api';
@@ -8,6 +8,9 @@ import Button from '@/components/ui/Button';
 import Card from '@/components/ui/Card';
 import Input from '@/components/ui/Input';
 import { useRouter } from 'next/navigation';
+import GithubWarningModal from './GithubWarningModal';
+import StepIndicator from './StepIndicator';
+import ErrorCard from './ErrorCard';
 
 type LoginStep = 'xquare' | 'github';
 
@@ -51,7 +54,7 @@ const LoginPage: React.FC = () => {
   }, [xquareId, step, isAuthenticated]);
 
   // 폼 유효성 검사
-  const validateForm = () => {
+  const validateForm = useCallback(() => {
     const errors = { accountId: '', password: '' };
     let isValid = true;
 
@@ -70,10 +73,10 @@ const LoginPage: React.FC = () => {
 
     setFormErrors(errors);
     return isValid;
-  };
+  }, [formData]);
 
   // XQUARE 로그인 처리
-  const handleXquareLogin = async (e: React.FormEvent) => {
+  const handleXquareLogin = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
 
@@ -81,22 +84,19 @@ const LoginPage: React.FC = () => {
       return;
     }
 
-    const success = await loginWithXquare(formData);
-    if (!success) {
-      // 오류는 store에서 관리
-    }
-  };
+    await loginWithXquare(formData);
+  }, [clearError, validateForm, loginWithXquare, formData]);
 
   // GitHub OAuth 경고창 표시
-  const handleShowGithubWarning = () => {
+  const handleShowGithubWarning = useCallback(() => {
     clearError();
     setShowWarningModal(true);
     setConfirmationText('');
     setConfirmationError('');
-  };
+  }, [clearError]);
 
   // 경고창 확인 처리
-  const handleConfirmWarning = () => {
+  const handleConfirmWarning = useCallback(() => {
     if (confirmationText.trim() !== '확인했습니다') {
       setConfirmationError('"확인했습니다"를 정확히 입력해주세요.');
       return;
@@ -104,17 +104,17 @@ const LoginPage: React.FC = () => {
     
     setShowWarningModal(false);
     startGithubOAuth();
-  };
+  }, [confirmationText]);
 
   // 경고창 취소 처리
-  const handleCancelWarning = () => {
+  const handleCancelWarning = useCallback(() => {
     setShowWarningModal(false);
     setConfirmationText('');
     setConfirmationError('');
-  };
+  }, []);
 
   // 입력 변경 처리
-  const handleInputChange = (field: 'accountId' | 'password') => (
+  const handleInputChange = useCallback((field: 'accountId' | 'password') => (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     setFormData(prev => ({
@@ -129,7 +129,7 @@ const LoginPage: React.FC = () => {
         [field]: ''
       }));
     }
-  };
+  }, [formErrors]);
 
   return (
     <>
@@ -146,46 +146,9 @@ const LoginPage: React.FC = () => {
           </div>
         </div>
 
-        {/* 진행 단계 표시 */}
-        <div className="flex items-center justify-center space-x-4">
-          <div className={`flex items-center space-x-2 ${
-            step === 'xquare' ? 'text-blue-600' : 'text-green-600'
-          }`}>
-            {step === 'xquare' ? (
-              <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-              </div>
-            ) : (
-              <CheckCircle className="w-6 h-6" />
-            )}
-            <span className="text-sm font-medium">XQUARE 로그인</span>
-          </div>
-          
-          <ChevronRight className="w-4 h-4 text-gray-400" />
-          
-          <div className={`flex items-center space-x-2 ${
-            step === 'github' ? 'text-blue-600' : 'text-gray-400'
-          }`}>
-            {step === 'github' ? (
-              <div className="w-6 h-6 border-2 border-blue-600 rounded-full flex items-center justify-center">
-                <div className="w-2 h-2 bg-blue-600 rounded-full"></div>
-              </div>
-            ) : (
-              <div className="w-6 h-6 border-2 border-gray-300 rounded-full"></div>
-            )}
-            <span className="text-sm font-medium">GitHub 연동</span>
-          </div>
-        </div>
+        <StepIndicator step={step} />
 
-        {/* 오류 메시지 */}
-        {error && (
-          <Card className="bg-red-50 border-red-200 p-4">
-            <div className="flex items-center space-x-2">
-              <AlertCircle className="w-5 h-5 text-red-600" />
-              <span className="text-sm text-red-700">{error}</span>
-            </div>
-          </Card>
-        )}
+        {error && <ErrorCard error={error} />}
 
         {/* 로그인 카드 */}
         <Card className="space-y-6">
@@ -294,78 +257,14 @@ const LoginPage: React.FC = () => {
     </div>
 
       {/* Organization 경고 모달 */}
-      {showWarningModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <Card className="max-w-md w-full">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-gray-900">중요한 안내사항</h3>
-              <button
-                onClick={handleCancelWarning}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-start space-x-3">
-                <AlertCircle className="w-6 h-6 text-orange-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="text-gray-900 font-medium mb-2">Organization 선택 관련 안내</p>
-                  <p className="text-sm text-gray-600 leading-relaxed">
-                    다음 GitHub 로그인에서 선택한 Organization들에 대한 커밋만 수집되며, 
-                    이후 Organization을 추가로 선택하려면 관리자의 조치가 필요합니다.
-                  </p>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
-                <p className="text-sm text-yellow-800">
-                  신중하게 선택해주세요. 나중에 변경하기 어렵습니다.
-                </p>
-              </div>
-
-              <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">
-                  위 내용을 확인했다면 아래에 입력해주세요
-                </label>
-                <input
-                  type="text"
-                  value={confirmationText}
-                  onChange={(e) => {
-                    setConfirmationText(e.target.value);
-                    setConfirmationError('');
-                  }}
-                  placeholder="확인했습니다"
-                  className="toss-input"
-                  autoFocus
-                />
-                {confirmationError && (
-                  <p className="text-sm text-red-600">{confirmationError}</p>
-                )}
-              </div>
-
-              <div className="flex gap-3">
-                <Button
-                  onClick={handleConfirmWarning}
-                  variant="primary"
-                  className="flex-1"
-                  disabled={!confirmationText.trim()}
-                >
-                  확인하고 계속하기
-                </Button>
-                <Button
-                  onClick={handleCancelWarning}
-                  variant="secondary"
-                  className="flex-1"
-                >
-                  취소
-                </Button>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
+      <GithubWarningModal
+        open={showWarningModal}
+        confirmationText={confirmationText}
+        confirmationError={confirmationError}
+        onChange={setConfirmationText}
+        onConfirm={handleConfirmWarning}
+        onCancel={handleCancelWarning}
+      />
     </>
   );
 };
