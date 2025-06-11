@@ -191,7 +191,7 @@ export const useAuthStore = create<AuthStore>()(
               avatar: registerResult.data.avatar || '/default-avatar.png',
               name: registerResult.data.name || registerResult.data.githubUsername,
               email: registerResult.data.email || `${registerResult.data.githubUsername}@github.local`,
-              totalCoins: registerResult.data.totalCoins || 50, // 시작 보너스
+              totalCoins: registerResult.data.totalCoins || 200, // 시작 보너스
               createdAt: registerResult.data.createdAt || new Date().toISOString(),
               lastMiningAt: registerResult.data.lastMiningAt
             };
