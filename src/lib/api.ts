@@ -25,7 +25,12 @@ api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401 || error.response?.status === 403) {
-      // 토큰 만료 또는 권한 없음 → 로그아웃 및 로그인 페이지로 이동
+      // zustand 상태도 초기화
+      if (typeof window !== 'undefined') {
+        import('@/stores/authStore').then(({ useAuthStore }) => {
+          useAuthStore.getState().logout();
+        });
+      }
       localStorage.removeItem('accessToken');
       localStorage.removeItem('refreshToken');
       window.location.href = '/';

@@ -73,6 +73,11 @@ export default function StoreDashboard() {
       if (response.status === 403) {
         localStorage.removeItem('storeToken');
         localStorage.removeItem('storeId');
+        if (typeof window !== 'undefined') {
+          import('@/stores/authStore').then(({ useAuthStore }) => {
+            useAuthStore.getState().logout();
+          });
+        }
         router.push('/festival/login');
         return;
       }
@@ -108,6 +113,11 @@ export default function StoreDashboard() {
       if (response.status === 403) {
         localStorage.removeItem('storeToken');
         localStorage.removeItem('storeId');
+        if (typeof window !== 'undefined') {
+          import('@/stores/authStore').then(({ useAuthStore }) => {
+            useAuthStore.getState().logout();
+          });
+        }
         router.push('/festival/login');
         return;
       }
@@ -149,6 +159,11 @@ export default function StoreDashboard() {
       if (response.status === 403) {
         localStorage.removeItem('storeToken');
         localStorage.removeItem('storeId');
+        if (typeof window !== 'undefined') {
+          import('@/stores/authStore').then(({ useAuthStore }) => {
+            useAuthStore.getState().logout();
+          });
+        }
         router.push('/festival/login');
         return;
       }
@@ -184,6 +199,11 @@ export default function StoreDashboard() {
       if (response.status === 403) {
         localStorage.removeItem('storeToken');
         localStorage.removeItem('storeId');
+        if (typeof window !== 'undefined') {
+          import('@/stores/authStore').then(({ useAuthStore }) => {
+            useAuthStore.getState().logout();
+          });
+        }
         router.push('/festival/login');
         return;
       }
