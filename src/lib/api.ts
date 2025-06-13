@@ -24,21 +24,11 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 401) {
-      // 토큰 만료 시 리프레시 시도
-      const refreshToken = localStorage.getItem('refreshToken');
-      if (refreshToken) {
-        try {
-          // 리프레시 토큰으로 새 액세스 토큰 발급
-          // 실제 리프레시 API가 있다면 여기서 호출
-          console.log('토큰 만료, 리프레시 필요');
-        } catch {
-          // 리프레시 실패 시 로그아웃
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          window.location.href = '/';
-        }
-      }
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // 토큰 만료 또는 권한 없음 → 로그아웃 및 로그인 페이지로 이동
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      window.location.href = '/';
     }
     return Promise.reject(error);
   }

@@ -70,6 +70,13 @@ export default function StoreDashboard() {
       
       console.log('Products response status:', response.status);
       
+      if (response.status === 403) {
+        localStorage.removeItem('storeToken');
+        localStorage.removeItem('storeId');
+        router.push('/festival/login');
+        return;
+      }
+      
       if (response.ok) {
         const data = await response.json();
         console.log('Products data:', data);
@@ -97,6 +104,13 @@ export default function StoreDashboard() {
       });
       
       console.log('Orders response status:', response.status);
+      
+      if (response.status === 403) {
+        localStorage.removeItem('storeToken');
+        localStorage.removeItem('storeId');
+        router.push('/festival/login');
+        return;
+      }
       
       if (response.ok) {
         const data = await response.json();
@@ -132,6 +146,13 @@ export default function StoreDashboard() {
 
       console.log('Add product response status:', response.status);
 
+      if (response.status === 403) {
+        localStorage.removeItem('storeToken');
+        localStorage.removeItem('storeId');
+        router.push('/festival/login');
+        return;
+      }
+
       if (response.ok) {
         console.log('Product added successfully');
         setNewProduct({ name: '', description: '', image: '', price: '' });
@@ -159,6 +180,13 @@ export default function StoreDashboard() {
       });
 
       console.log('Complete order response status:', response.status);
+
+      if (response.status === 403) {
+        localStorage.removeItem('storeToken');
+        localStorage.removeItem('storeId');
+        router.push('/festival/login');
+        return;
+      }
 
       if (response.ok) {
         console.log('Order completed successfully');
