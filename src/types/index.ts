@@ -129,15 +129,25 @@ export interface UserProfile {
 }
 
 export interface LeaderboardEntry {
-  id: string;
-  githubUsername: string;
-  avatar: string;
-  name: string;
-  totalCoins: number;
   rank: number;
+  profileImageUrl: string;
+  totalCoins: number;
+  githubId: string;
 }
 
 export interface LeaderboardResponse {
-  leaderboard: LeaderboardEntry[];
+  items: LeaderboardEntry[];
+  currentPage: number;
+  pageSize: number;
   totalUsers: number;
+  totalPages: number;
+  hasNext: boolean;
+  hasPrevious: boolean;
+}
+
+export interface WalletHistoryResponse {
+  history: any[];
+  hasMore: boolean;
+  totalCount: number;
+  currentPage: number;
 } 

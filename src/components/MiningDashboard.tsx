@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import { Coins, GitCommit, Trophy, Pickaxe } from 'lucide-react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -9,18 +9,56 @@ import { useAuthStore } from '@/stores/authStore';
 import Card from '@/components/ui/Card';
 
 const MiningDashboard: React.FC = () => {
-  const { walletInfo, userProfile, history, fetchWalletHistory } = useAuthStore();
+  const { 
+    walletInfo, 
+    userProfile, 
+    history, 
+    fetchWalletHistory, 
+    loadMoreHistory,
+    hasMoreHistory,
+    isLoadingHistory 
+  } = useAuthStore();
   const { 
     recentCommits, 
     addCommit 
   } = useMiningStore();
 
   const [showAnimation, setShowAnimation] = useState(false);
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   React.useEffect(() => {
-    fetchWalletHistory();
+    fetchWalletHistory(0, true); // 초기 로드 시 reset=true
     // eslint-disable-next-line
   }, []);
+
+  // 최적화된 무한스크롤 (Intersection Observer 사용)
+  React.useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        if (entry.isIntersecting && hasMoreHistory && !isLoadingHistory) {
+          loadMoreHistory();
+        }
+      },
+      {
+        threshold: 0.1, // 10% 보이면 트리거
+        rootMargin: '50px', // 50px 여유분 두고 트리거
+        root: scrollRef.current, // 스크롤 컨테이너를 root로 설정
+      }
+    );
+
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [hasMoreHistory, isLoadingHistory, loadMoreHistory]);
 
   // 정기적으로 데모 커밋 시뮬레이션 (실제로는 GitHub 웹훅으로 처리)
   React.useEffect(() => {
@@ -160,59 +198,92 @@ const MiningDashboard: React.FC = () => {
             </div>
           </div>
 
-          <div className="space-y-4">
-            {history.length === 0 ? (
+          <div 
+            ref={scrollRef} 
+            className="space-y-4 h-[500px] overflow-y-auto pr-2 mining-history-scroll"
+            style={{ 
+              scrollbarWidth: 'thin',
+              willChange: 'scroll-position'
+            }}
+          >
+            {history.length === 0 && !isLoadingHistory ? (
               <div className="text-center py-16">
                 <div className="text-6xl mb-6">⛏️</div>
                 <p className="text-gray-600 text-xl font-semibold mb-2">아직 채굴된 커밋이 없습니다</p>
                 <p className="text-gray-500">GitHub에 커밋하면 자동으로 채굴됩니다! 🎯</p>
               </div>
             ) : (
-              history.map((item, index) => (
-                <div
-                  key={item.id}
-                  className={`relative overflow-hidden bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] ${
-                    index === 0 && showAnimation ? 'coin-drop animate-bounce' : ''
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
-                          <GitCommit className="w-5 h-5 text-white" />
-                        </div>
-                        <span className="font-bold text-gray-900 text-lg">
-                          {item.message}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-4 text-sm text-gray-600 font-medium ml-13">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-                          <span>{item.repoName}</span>
-                        </div>
-                        <span>•</span>
-                        <span>{format(new Date(item.createdAt), 'MM/dd HH:mm', { locale: ko })}</span>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
-                        <div className="flex items-center space-x-2">
-                          <Coins className="w-6 h-6 text-yellow-500" />
-                          <span className="font-black text-xl text-gray-900">
-                            {item.amount > 0 ? `+${item.amount}` : item.amount}
+              <>
+                {history.map((item, index) => (
+                  <div
+                    key={item.id}
+                    className={`relative overflow-hidden bg-gradient-to-r from-gray-50 to-gray-100 rounded-2xl p-6 border border-gray-200 hover:shadow-lg transition-all duration-300 hover:scale-[1.02] ${
+                      index === 0 && showAnimation ? 'coin-drop animate-bounce' : ''
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-3">
+                          <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center shadow-sm">
+                            <GitCommit className="w-5 h-5 text-white" />
+                          </div>
+                          <span className="font-bold text-gray-900 text-lg">
+                            {item.message}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-500 font-semibold mt-1">DMC</div>
+                        <div className="flex items-center space-x-4 text-sm text-gray-600 font-medium ml-13">
+                          <div className="flex items-center space-x-2">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                            <span>{item.repoName}</span>
+                          </div>
+                          <span>•</span>
+                          <span>{format(new Date(item.createdAt), 'MM/dd HH:mm', { locale: ko })}</span>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-200">
+                          <div className="flex items-center space-x-2">
+                            <Coins className="w-6 h-6 text-yellow-500" />
+                            <span className="font-black text-xl text-gray-900">
+                              {item.amount > 0 ? `+${item.amount}` : item.amount}
+                            </span>
+                          </div>
+                          <div className="text-xs text-gray-500 font-semibold mt-1">DMC</div>
+                        </div>
                       </div>
                     </div>
+                    
+                    {/* 배경 장식 */}
+                    <div className="absolute top-0 right-0 w-20 h-20 opacity-5">
+                      <div className="w-full h-full bg-gradient-to-bl from-blue-400 to-indigo-500 rounded-bl-full"></div>
+                    </div>
                   </div>
-                  
-                  {/* 배경 장식 */}
-                  <div className="absolute top-0 right-0 w-20 h-20 opacity-5">
-                    <div className="w-full h-full bg-gradient-to-bl from-blue-400 to-indigo-500 rounded-bl-full"></div>
+                ))}
+
+                {/* Intersection Observer 타겟 (무한스크롤 트리거) */}
+                {hasMoreHistory && <div ref={observerTarget} className="h-1" />}
+
+                {/* 로딩 인디케이터 */}
+                {isLoadingHistory && (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 border-3 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
+                      <span className="text-gray-600 font-medium">더 많은 커밋을 불러오는 중...</span>
+                    </div>
                   </div>
-                </div>
-              ))
+                )}
+
+                {/* 더 이상 데이터가 없을 때 */}
+                {!hasMoreHistory && history.length > 0 && (
+                  <div className="text-center py-6">
+                    <div className="flex items-center justify-center space-x-2 text-gray-500">
+                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                      <span className="text-sm">모든 커밋 내역을 확인했습니다</span>
+                      <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                    </div>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

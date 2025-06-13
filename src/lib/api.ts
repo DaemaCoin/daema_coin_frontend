@@ -160,7 +160,7 @@ export const getUserInfo = async () => {
 // 지갑 내역(커밋 히스토리) 조회 API
 export const getWalletHistory = async (page = 0) => {
   try {
-    const response = await api.get(`/wallet/history?page=${page}`);
+    const response = await api.get(`/coin/history?page=${page}`);
     return { success: true, data: response.data };
   } catch (error: unknown) {
     console.error('Wallet History API 오류:', error);
@@ -172,9 +172,9 @@ export const getWalletHistory = async (page = 0) => {
 };
 
 // 리더보드 조회 API
-export const getLeaderboard = async (limit = 10) => {
+export const getLeaderboard = async (page = 0, limit = 10) => {
   try {
-    const response = await api.get(`/leaderboard?limit=${limit}`);
+    const response = await api.get(`/leaderboard?page=${page}&limit=${limit}`);
     return { success: true, data: response.data };
   } catch (error: unknown) {
     console.error('Leaderboard API 오류:', error);

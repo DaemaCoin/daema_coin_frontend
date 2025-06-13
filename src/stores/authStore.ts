@@ -59,7 +59,11 @@ interface AuthStore extends AuthState {
   
   // 최근 커밋 내역(지갑 history)
   history: WalletHistoryItem[];
-  fetchWalletHistory: (page?: number) => Promise<void>;
+  currentPage: number;
+  hasMoreHistory: boolean;
+  isLoadingHistory: boolean;
+  fetchWalletHistory: (page?: number, reset?: boolean) => Promise<void>;
+  loadMoreHistory: () => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -77,6 +81,12 @@ export const useAuthStore = create<AuthStore>()(
       walletInfo: null,
       walletPollingInterval: null,
       userProfile: null,
+      
+      // 히스토리 관련 초기 상태
+      history: [],
+      currentPage: 0,
+      hasMoreHistory: true,
+      isLoadingHistory: false,
 
       // XQUARE 로그인
       loginWithXquare: async (formData: XquareLoginForm) => {
@@ -253,7 +263,12 @@ export const useAuthStore = create<AuthStore>()(
           refreshToken: null,
           walletInfo: null,
           walletPollingInterval: null,
-          userProfile: null
+          userProfile: null,
+          // 히스토리 상태 초기화
+          history: [],
+          currentPage: 0,
+          hasMoreHistory: true,
+          isLoadingHistory: false
         });
       },
 
@@ -301,7 +316,12 @@ export const useAuthStore = create<AuthStore>()(
           refreshToken: null,
           walletInfo: null,
           walletPollingInterval: null,
-          userProfile: null
+          userProfile: null,
+          // 히스토리 상태 초기화
+          history: [],
+          currentPage: 0,
+          hasMoreHistory: true,
+          isLoadingHistory: false
         });
       },
 
@@ -380,19 +400,56 @@ export const useAuthStore = create<AuthStore>()(
         }
       },
 
-      // 최근 커밋 내역(지갑 history)
-      history: [],
-      fetchWalletHistory: async (page = 0) => {
+      // 최근 커밋 내역(지갑 history) - 무한스크롤 구현
+      fetchWalletHistory: async (page = 0, reset = false) => {
+        const state = get();
+        
+        // 이미 로딩 중이거나, 더 이상 데이터가 없으면 중단
+        if (state.isLoadingHistory || (!reset && !state.hasMoreHistory)) {
+          return;
+        }
+
+        set({ isLoadingHistory: true });
+        
         try {
           const result = await getWalletHistory(page);
           if (result.success && result.data) {
-            set({ history: result.data.history });
+            const newHistory = result.data.history || [];
+            // API에서 hasMore 정보가 있으면 사용, 없으면 배열 길이로 판단
+            const hasMore = result.data.hasMore !== undefined 
+              ? result.data.hasMore 
+              : newHistory.length > 0 && newHistory.length >= 10; // 페이지당 10개 기준
+            
+            // 중복 제거를 위한 로직 추가
+            set(state => {
+              const existingIds = new Set(state.history.map((item: WalletHistoryItem) => item.id));
+              const uniqueNewHistory = newHistory.filter((item: WalletHistoryItem) => !existingIds.has(item.id));
+              
+              return {
+                history: reset ? newHistory : [...state.history, ...uniqueNewHistory],
+                currentPage: page,
+                hasMoreHistory: hasMore,
+                isLoadingHistory: false
+              };
+            });
           } else {
-            set({ error: result.error || '지갑 내역 조회에 실패했습니다.' });
+            set({ 
+              error: result.error || '지갑 내역 조회에 실패했습니다.',
+              isLoadingHistory: false 
+            });
           }
         } catch (error: unknown) {
-          set({ error: error instanceof Error ? error.message : '지갑 내역 조회 실패' });
+          set({ 
+            error: error instanceof Error ? error.message : '지갑 내역 조회 실패',
+            isLoadingHistory: false 
+          });
         }
+      },
+
+      loadMoreHistory: async () => {
+        const state = get();
+        if (state.isLoadingHistory || !state.hasMoreHistory) return;
+        await state.fetchWalletHistory(state.currentPage + 1, false);
       },
     }),
     {
@@ -404,7 +461,12 @@ export const useAuthStore = create<AuthStore>()(
         accessToken: state.accessToken,
         refreshToken: state.refreshToken,
         walletInfo: state.walletInfo,
-        userProfile: state.userProfile
+        userProfile: state.userProfile,
+        // 히스토리 관련 상태는 persist하지 않음 (실시간 데이터이므로)
+        history: [],
+        currentPage: 0,
+        hasMoreHistory: true,
+        isLoadingHistory: false
       })
     }
   )
