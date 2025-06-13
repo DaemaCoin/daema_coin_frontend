@@ -126,4 +126,18 @@ export interface UserProfile {
   githubId: string;
   githubImageUrl: string;
   totalCommits: number;
+}
+
+export interface LeaderboardEntry {
+  id: string;
+  githubUsername: string;
+  avatar: string;
+  name: string;
+  totalCoins: number;
+  rank: number;
+}
+
+export interface LeaderboardResponse {
+  leaderboard: LeaderboardEntry[];
+  totalUsers: number;
 } 

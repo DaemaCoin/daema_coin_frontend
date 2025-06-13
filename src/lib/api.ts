@@ -171,4 +171,20 @@ export const getWalletHistory = async (page = 0) => {
   }
 };
 
+// 리더보드 조회 API
+export const getLeaderboard = async (limit = 10) => {
+  try {
+    const response = await api.get(`/leaderboard?limit=${limit}`);
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    console.error('Leaderboard API 오류:', error);
+    return {
+      success: false,
+      error: axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message 
+        : '리더보드 조회에 실패했습니다.'
+    };
+  }
+};
+
 export { GITHUB_LOGIN_URL }; 
