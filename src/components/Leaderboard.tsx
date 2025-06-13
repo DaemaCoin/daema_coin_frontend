@@ -36,40 +36,84 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
   }, []);
 
   const loadMoreLeaderboard = useCallback(async () => {
-    if (!hasMore || isLoadingMore) return;
+    console.log('🔄 loadMoreLeaderboard 호출됨:', { hasMore, isLoadingMore, currentPage });
+    if (!hasMore || isLoadingMore) {
+      console.log('❌ 로딩 중단:', { hasMore, isLoadingMore });
+      return;
+    }
+    console.log('📖 다음 페이지 로딩:', currentPage + 1);
     await fetchLeaderboard(currentPage + 1, false);
   }, [hasMore, isLoadingMore, currentPage]);
 
   // Intersection Observer를 이용한 무한스크롤 (더 부드럽고 성능 좋음)
   const observerTarget = useRef<HTMLDivElement>(null);
 
+  // 최신 상태를 참조하기 위한 ref
+  const hasMoreRef = useRef(hasMore);
+  const isLoadingMoreRef = useRef(isLoadingMore);
+  const currentPageRef = useRef(currentPage);
+
+  // ref 업데이트
   useEffect(() => {
+    hasMoreRef.current = hasMore;
+    isLoadingMoreRef.current = isLoadingMore;
+    currentPageRef.current = currentPage;
+  }, [hasMore, isLoadingMore, currentPage]);
+
+  useEffect(() => {
+    console.log('🔭 Observer 설정');
+    
     const observer = new IntersectionObserver(
       (entries) => {
         const [entry] = entries;
-        if (entry.isIntersecting && hasMore && !isLoadingMore) {
-          loadMoreLeaderboard();
+        console.log('👁️ Observer 트리거:', { 
+          isIntersecting: entry.isIntersecting,
+          boundingClientRect: entry.boundingClientRect,
+          intersectionRatio: entry.intersectionRatio
+        });
+        
+        if (entry.isIntersecting) {
+          console.log('✨ 무한스크롤 조건 체크 중...');
+          console.log('📊 현재 상태:', {
+            hasMore: hasMoreRef.current,
+            isLoadingMore: isLoadingMoreRef.current,
+            currentPage: currentPageRef.current
+          });
+          
+          if (hasMoreRef.current && !isLoadingMoreRef.current) {
+            console.log('🚀 무한스크롤 실행!');
+            fetchLeaderboard(currentPageRef.current + 1, false);
+          } else {
+            console.log('❌ 무한스크롤 조건 불충족');
+          }
         }
       },
       {
-        threshold: 0.1, // 10% 보이면 트리거
-        rootMargin: '20px', // 20px 여유분 두고 트리거
+        threshold: 0.1,
+        rootMargin: '50px',
+        root: null, // viewport를 기준으로 변경
       }
     );
 
     const currentTarget = observerTarget.current;
     if (currentTarget) {
+      console.log('🎯 Observer target 관찰 시작');
       observer.observe(currentTarget);
+    } else {
+      console.warn('⚠️ Observer target이 없습니다!');
     }
 
     return () => {
       if (currentTarget) {
+        console.log('🔴 Observer 정리');
         observer.unobserve(currentTarget);
       }
     };
-  }, [hasMore, isLoadingMore, loadMoreLeaderboard]);
+  }, []); // 한 번만 설정
 
   const fetchLeaderboard = async (page = 0, reset = false) => {
+    console.log('🚀 fetchLeaderboard 시작:', { page, reset, limit });
+    
     if (reset) {
       setIsLoading(true);
     } else {
@@ -79,13 +123,36 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
     
     try {
       const result = await getLeaderboard(page, limit);
+      console.log('📡 API 응답:', result);
+      
       if (result.success && result.data) {
         const response: LeaderboardResponse = result.data;
         const newItems = response.items || [];
         
-        setLeaderboard(prev => reset ? newItems : [...prev, ...newItems]);
+        console.log('✅ API 성공:', {
+          currentPage: response.currentPage,
+          hasNext: response.hasNext,
+          itemsCount: newItems.length,
+          totalPages: response.totalPages,
+          totalUsers: response.totalUsers
+        });
+        
+        setLeaderboard(prev => {
+          const updated = reset ? newItems : [...prev, ...newItems];
+          console.log('📊 리더보드 업데이트:', { 
+            이전개수: prev.length, 
+            새로운개수: newItems.length, 
+            총개수: updated.length 
+          });
+          return updated;
+        });
         setCurrentPage(response.currentPage);
         setHasMore(response.hasNext);
+        
+        console.log('🔄 상태 업데이트:', {
+          currentPage: response.currentPage,
+          hasMore: response.hasNext
+        });
       } else {
         // API 실패 시 데모 데이터 사용
         console.warn('리더보드 API 실패, 데모 데이터 사용:', result.error);
@@ -258,6 +325,25 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
             // 스크롤 이벤트가 부모로 전파되는 것을 방지
             e.stopPropagation();
           }}
+          onScroll={(e) => {
+            // 백업 스크롤 이벤트 (Observer가 작동하지 않을 때를 위해)
+            const target = e.currentTarget;
+            const { scrollTop, scrollHeight, clientHeight } = target;
+            const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
+            
+            console.log('📜 스크롤 이벤트:', {
+              scrollTop,
+              scrollHeight,
+              clientHeight,
+              scrollPercentage,
+              isNearBottom: scrollPercentage > 0.9
+            });
+            
+            if (scrollPercentage > 0.9 && hasMoreRef.current && !isLoadingMoreRef.current) {
+              console.log('🔄 백업 무한스크롤 실행!');
+              fetchLeaderboard(currentPageRef.current + 1, false);
+            }
+          }}
         >
           {leaderboard.map((entry, index) => {
             const isCurrentUser = user && entry.githubId === user.githubUsername;
@@ -350,7 +436,22 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
           })}
 
           {/* Intersection Observer 타겟 (무한스크롤 트리거) */}
-          {hasMore && <div ref={observerTarget} className="h-1" />}
+          {hasMore && (
+            <div 
+              ref={observerTarget} 
+              className="h-1 bg-red-200" 
+              style={{ visibility: 'visible' }}
+            >
+              {/* 디버깅용 표시 */}
+              <div className="text-xs text-center text-red-500">Observer Target</div>
+            </div>
+          )}
+          
+          {/* 디버깅 정보 */}
+          <div className="text-xs text-center text-gray-400 p-2">
+            Debug: hasMore={hasMore.toString()}, isLoadingMore={isLoadingMore.toString()}, 
+            currentPage={currentPage}, leaderboard길이={leaderboard.length}
+          </div>
 
           {/* 로딩 인디케이터 */}
           {isLoadingMore && (
