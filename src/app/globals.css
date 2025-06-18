@@ -2,10 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 214, 219, 220;
+  --background-end-rgb: 255, 255, 255;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-start-rgb: 0, 0, 0;
+    --background-end-rgb: 0, 0, 0;
+  }
+}
+
 body {
   font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  background-color: #f9fafb;
-  color: #191f28;
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
   line-height: 1.6;
 }
 
@@ -150,66 +169,398 @@ body {
 
 /* 리더보드 스크롤 컨테이너 전용 스타일 */
 .leaderboard-scroll {
-  /* 스크롤 체이닝 방지 */
   overscroll-behavior: contain;
-  /* 터치 스크롤 최적화 */
-  -webkit-overflow-scrolling: touch;
-  /* 스크롤바 항상 표시 */
-  scrollbar-gutter: stable;
-  /* GPU 가속 및 성능 최적화 */
-  will-change: scroll-position;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
   transform: translateZ(0);
-  /* 부드러운 스크롤 */
-  scroll-behavior: smooth;
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+  
+  /* 모바일에서 더 부드러운 스크롤 */
+  @media (max-width: 768px) {
+    scrollbar-width: none;
+    -webkit-scrollbar: none;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+  }
 }
 
 .leaderboard-scroll::-webkit-scrollbar {
   width: 4px;
+  
+  /* 모바일에서는 스크롤바 숨김 */
+  @media (max-width: 768px) {
+    display: none;
+    width: 0;
+  }
 }
 
 .leaderboard-scroll::-webkit-scrollbar-track {
-  background: #f8fafc;
-  border-radius: 2px;
+  background: transparent;
 }
 
 .leaderboard-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background-color: rgba(156, 163, 175, 0.5);
   border-radius: 2px;
 }
 
 .leaderboard-scroll::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background-color: rgba(156, 163, 175, 0.8);
 }
 
 /* 마이닝 히스토리 스크롤 컨테이너 전용 스타일 */
 .mining-history-scroll {
-  /* 스크롤 체이닝 방지 */
   overscroll-behavior: contain;
-  /* 터치 스크롤 최적화 */
-  -webkit-overflow-scrolling: touch;
-  /* GPU 가속 및 성능 최적화 */
-  will-change: scroll-position;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.5) transparent;
   transform: translateZ(0);
-  /* 부드러운 스크롤 */
-  scroll-behavior: smooth;
-  /* 스크롤바 항상 표시 */
-  scrollbar-gutter: stable;
+  will-change: scroll-position;
+  -webkit-overflow-scrolling: touch;
+  
+  /* 모바일에서 더 부드러운 스크롤 */
+  @media (max-width: 768px) {
+    scrollbar-width: none;
+    -webkit-scrollbar: none;
+    overscroll-behavior-y: contain;
+    scroll-behavior: smooth;
+  }
 }
 
 .mining-history-scroll::-webkit-scrollbar {
-  width: 6px;
+  width: 4px;
+  
+  /* 모바일에서는 스크롤바 숨김 */
+  @media (max-width: 768px) {
+    display: none;
+    width: 0;
+  }
 }
 
 .mining-history-scroll::-webkit-scrollbar-track {
-  background: #f8fafc;
-  border-radius: 3px;
+  background: transparent;
 }
 
 .mining-history-scroll::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 3px;
+  background-color: rgba(156, 163, 175, 0.5);
+  border-radius: 2px;
 }
 
 .mining-history-scroll::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+  background-color: rgba(156, 163, 175, 0.8);
+}
+
+/* 모바일 터치 최적화 */
+@media (max-width: 768px) {
+  /* 터치 영역 확대 */
+  button, a, [role="button"] {
+    min-height: 44px; /* 애플 권장 최소 터치 영역 */
+  }
+  
+  /* 텍스트 선택 비활성화 (버튼에서) */
+  button {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+  }
+  
+  /* 포커스 상태 개선 */
+  input:focus, textarea:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+  }
+  
+  /* 모바일에서 더 부드러운 애니메이션 */
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
+
+/* 성능 최적화를 위한 GPU 가속 */
+.gpu-accelerated {
+  transform: translateZ(0);
+  will-change: transform;
+  backface-visibility: hidden;
+  perspective: 1000px;
+}
+
+/* 로딩 스피너 최적화 */
+@keyframes spin-mobile {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-mobile {
+  animation: spin-mobile 1s linear infinite;
+  transform: translateZ(0);
+}
+
+/* 모달 최적화 */
+@media (max-width: 768px) {
+  .modal-overlay {
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+  }
+  
+  .modal-content {
+    margin: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* 반응형 그리드 최적화 */
+@media (max-width: 640px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .responsive-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+}
+
+@media (min-width: 769px) {
+  .responsive-grid {
+    grid-template-columns: 2fr 1fr;
+    gap: 1.5rem;
+  }
+}
+
+/* 텍스트 가독성 개선 */
+@media (max-width: 768px) {
+  h1, h2, h3, h4, h5, h6 {
+    line-height: 1.3;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+  
+  p {
+    line-height: 1.5;
+    word-break: keep-all;
+    overflow-wrap: break-word;
+  }
+}
+
+/* 카드 컴포넌트 최적화 */
+@media (max-width: 768px) {
+  .card-mobile {
+    border-radius: 0.75rem;
+    padding: 0.75rem;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (min-width: 769px) {
+  .card-desktop {
+    border-radius: 1.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  }
+}
+
+/* 무한스크롤 인디케이터 최적화 */
+.infinite-scroll-indicator {
+  transform: translateZ(0);
+  will-change: opacity;
+}
+
+/* 모바일 네비게이션 최적화 */
+@media (max-width: 768px) {
+  .mobile-nav {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+}
+
+/* 오늘의 채굴 현황 관련 스타일 */
+.mining-progress-bar {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, #dbeafe 0%, #bfdbfe 100%);
+  border-radius: 9999px;
+  transition: all 0.3s ease;
+}
+
+.mining-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #3b82f6 0%, #4f46e5 50%, #6366f1 100%);
+  border-radius: 9999px;
+  transition: width 0.5s ease-out;
+  position: relative;
+  overflow: hidden;
+}
+
+.mining-progress-fill::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
+  animation: progress-shine 2s infinite;
+}
+
+@keyframes progress-shine {
+  0% {
+    left: -100%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+
+.mining-status-complete {
+  animation: mining-complete-pulse 2s infinite;
+}
+
+@keyframes mining-complete-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+}
+
+.mining-status-number {
+  transition: all 0.3s ease;
+  transform: translateZ(0);
+}
+
+.mining-status-number.updated {
+  animation: number-update 0.6s ease-out;
+}
+
+@keyframes number-update {
+  0% {
+    transform: scale(1.2);
+    color: #10b981;
+  }
+  50% {
+    transform: scale(1.1);
+    color: #059669;
+  }
+  100% {
+    transform: scale(1);
+    color: inherit;
+  }
+}
+
+/* 채굴 현황 카드 호버 효과 */
+.mining-status-card {
+  transition: all 0.3s ease;
+  transform: translateZ(0);
+}
+
+.mining-status-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+@media (max-width: 768px) {
+  .mining-status-card:hover {
+    transform: none;
+  }
+}
+
+/* 반응형 타이포그래피 개선 */
+@media (max-width: 640px) {
+  .mining-status-title {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+  
+  .mining-status-number {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+@media (min-width: 641px) {
+  .mining-status-title {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+  
+  .mining-status-number {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+/* 로딩 애니메이션 개선 */
+.mining-loading-spinner {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  border: 2px solid #bfdbfe;
+  border-radius: 50%;
+  border-top-color: #3b82f6;
+  animation: spin 1s ease-in-out infinite;
+  transform: translateZ(0);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* 채굴 완료 메시지 스타일 */
+.mining-complete-message {
+  background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+  color: #dc2626;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #fca5a5;
+  font-weight: 600;
+  animation: mining-complete-glow 2s infinite alternate;
+}
+
+@keyframes mining-complete-glow {
+  0% {
+    box-shadow: 0 0 5px rgba(220, 38, 38, 0.3);
+  }
+  100% {
+    box-shadow: 0 0 20px rgba(220, 38, 38, 0.5);
+  }
+}
+
+/* 채굴 가능 메시지 스타일 */
+.mining-available-message {
+  background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
+  color: #1e40af;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #93c5fd;
+  font-weight: 500;
+}
+
+/* 성능 최적화 */
+.mining-status-container {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+.mining-progress-container {
+  transform: translateZ(0);
+  will-change: transform;
 }

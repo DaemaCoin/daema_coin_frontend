@@ -14,207 +14,6 @@ import ErrorCard from './ErrorCard';
 
 type LoginStep = 'xquare' | 'github';
 
-/*
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-전현모 선생님 잘생겼어요
-좌찬익 선생님 결혼축하드려요
-양은정 선생님 사랑합니다.
-*/
 const LoginPage: React.FC = () => {
   const [step, setStep] = useState<LoginStep>('xquare');
   const [formData, setFormData] = useState({
@@ -334,16 +133,16 @@ const LoginPage: React.FC = () => {
 
   return (
     <>
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 flex items-center justify-center p-4">
-      <div className="max-w-md w-full space-y-8">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-yellow-50 flex items-center justify-center p-3 sm:p-4 lg:p-6">
+      <div className="max-w-sm sm:max-w-md w-full space-y-6 sm:space-y-8">
         {/* 로고 및 제목 */}
-        <div className="text-center space-y-4">
-          <div className="w-16 h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl flex items-center justify-center mx-auto">
-            <Coins className="w-8 h-8 text-white" />
+        <div className="text-center space-y-3 sm:space-y-4">
+          <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-xl sm:rounded-2xl flex items-center justify-center mx-auto">
+            <Coins className="w-6 h-6 sm:w-8 sm:h-8 text-white" />
           </div>
           <div>
-            <h1 className="text-3xl font-black text-gray-900">대마코인</h1>
-            <p className="text-gray-600 mt-2">GitHub 커밋으로 코인을 채굴하세요</p>
+            <h1 className="text-2xl sm:text-3xl font-black text-gray-900">대마코인</h1>
+            <p className="text-gray-600 mt-1 sm:mt-2 text-sm sm:text-base">GitHub 커밋으로 코인을 채굴하세요</p>
           </div>
         </div>
 
@@ -352,18 +151,18 @@ const LoginPage: React.FC = () => {
         {error && <ErrorCard error={error} />}
 
         {/* 로그인 카드 */}
-        <Card className="space-y-6">
+        <Card className="space-y-4 sm:space-y-6">
           {step === 'xquare' && (
             <>
               <div className="text-center space-y-2">
-                <Shield className="w-12 h-12 text-blue-600 mx-auto" />
-                <h2 className="text-xl font-bold text-gray-900">XQUARE 로그인</h2>
-                <p className="text-sm text-gray-600">
+                <Shield className="w-10 h-10 sm:w-12 sm:h-12 text-blue-600 mx-auto" />
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">XQUARE 로그인</h2>
+                <p className="text-xs sm:text-sm text-gray-600 px-2">
                   XQUARE 계정으로 안전하게 로그인하세요
                 </p>
               </div>
               
-              <form onSubmit={handleXquareLogin} className="space-y-4">
+              <form onSubmit={handleXquareLogin} className="space-y-3 sm:space-y-4">
                 <Input
                   label="계정 ID"
                   type="text"
@@ -385,10 +184,10 @@ const LoginPage: React.FC = () => {
                 <Button
                   type="submit"
                   isLoading={isLoading}
-                  className="w-full"
+                  className="w-full mt-4 sm:mt-6"
                   size="lg"
                 >
-                  <Shield className="w-5 h-5 mr-2" />
+                  <Shield className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
                   XQUARE로 로그인
                 </Button>
               </form>
@@ -398,74 +197,91 @@ const LoginPage: React.FC = () => {
           {step === 'github' && (
             <>
               <div className="text-center space-y-2">
-                <Github className="w-12 h-12 text-gray-900 mx-auto" />
-                <h2 className="text-xl font-bold text-gray-900">GitHub 연동</h2>
-                <p className="text-sm text-gray-600">
+                <Github className="w-10 h-10 sm:w-12 sm:h-12 text-gray-900 mx-auto" />
+                <h2 className="text-lg sm:text-xl font-bold text-gray-900">GitHub 연동</h2>
+                <p className="text-xs sm:text-sm text-gray-600 px-2">
                   GitHub 계정을 연동하여 커밋 기반 채굴을 시작하세요
                 </p>
               </div>
 
               {xquareId && (
-                <div className="bg-green-50 p-4 rounded-xl border border-green-200">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <CheckCircle className="w-4 h-4 text-green-600" />
-                    <span className="font-medium text-green-800">XQUARE 로그인 성공</span>
+                <div className="bg-green-50 p-3 sm:p-4 rounded-xl border border-green-200">
+                  <div className="flex items-center space-x-2 sm:space-x-3">
+                    <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5 text-green-600 flex-shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-xs sm:text-sm font-medium text-green-800">
+                        XQUARE 로그인 완료
+                      </p>
+                      <p className="text-xs text-green-600 truncate">
+                        ID: {xquareId}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-sm text-green-700">
-                    ID: {xquareId.substring(0, 8)}...
-                  </p>
                 </div>
               )}
 
-              <div className="bg-gray-50 p-4 rounded-xl space-y-2">
-                <h3 className="font-medium text-gray-900">연동 후 가능한 기능</h3>
-                <ul className="text-sm text-gray-600 space-y-1">
-                  <li>• 실시간 커밋 감지 및 자동 채굴</li>
-                  <li>• 커밋 품질에 따른 코인 보상</li>
-                  <li>• 리포지토리별 채굴 통계</li>
-                </ul>
-              </div>
-              
-              <Button
-                  onClick={handleShowGithubWarning}
-                isLoading={isLoading}
-                className="w-full bg-gray-900 hover:bg-gray-800"
-                size="lg"
-              >
-                <Github className="w-5 h-5 mr-2" />
-                GitHub 계정 연동
-              </Button>
-
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-200">
-                <div className="flex items-center space-x-2 mb-2">
-                  <AlertCircle className="w-4 h-4 text-blue-600" />
-                  <span className="font-medium text-blue-800">안내</span>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="bg-blue-50 p-3 sm:p-4 rounded-xl border border-blue-200">
+                  <div className="space-y-2 sm:space-y-3">
+                    <div className="flex items-start space-x-2 sm:space-x-3">
+                      <Github className="w-4 h-4 sm:w-5 sm:h-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                      <div>
+                        <h3 className="text-sm sm:text-base font-semibold text-blue-900">
+                          GitHub 연동이 필요한 이유
+                        </h3>
+                      </div>
+                    </div>
+                    <ul className="space-y-1 sm:space-y-2 text-xs sm:text-sm text-blue-800 ml-6 sm:ml-8">
+                      <li>• 커밋 기반 자동 코인 채굴</li>
+                      <li>• 실시간 개발 활동 추적</li>
+                      <li>• 공정한 채굴량 계산</li>
+                    </ul>
+                  </div>
                 </div>
-                <p className="text-sm text-blue-700">
-                  GitHub 연동 후 자동으로 회원가입이 완료됩니다.
-                </p>
+
+                <Button
+                  onClick={handleShowGithubWarning}
+                  isLoading={isLoading}
+                  className="w-full"
+                  size="lg"
+                >
+                  <Github className="w-4 h-4 sm:w-5 sm:h-5 mr-2" />
+                  GitHub 계정 연동하기
+                  <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5 ml-2" />
+                </Button>
               </div>
             </>
           )}
         </Card>
 
-        {/* 푸터 */}
-        <div className="text-center text-xs text-gray-500 space-y-1">
-          <p>대마코인으로 개발 활동을 더욱 재미있게!</p>
-          <p>© 2024 대마코인. All rights reserved.</p>
+        {/* 하단 정보 */}
+        <div className="text-center space-y-2 sm:space-y-3">
+          <div className="flex items-center justify-center space-x-4 sm:space-x-6 text-xs sm:text-sm text-gray-500">
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <Shield className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>안전한 인증</span>
+            </div>
+            <div className="flex items-center space-x-1 sm:space-x-2">
+              <Coins className="w-3 h-3 sm:w-4 sm:h-4" />
+              <span>자동 채굴</span>
+            </div>
+          </div>
+          <p className="text-xs text-gray-400 px-4">
+            GitHub 계정 연동 시 개인정보는 안전하게 보호됩니다
+          </p>
         </div>
       </div>
     </div>
 
-      {/* Organization 경고 모달 */}
-      <GithubWarningModal
-        open={showWarningModal}
-        confirmationText={confirmationText}
-        confirmationError={confirmationError}
-        onChange={setConfirmationText}
-        onConfirm={handleConfirmWarning}
-        onCancel={handleCancelWarning}
-      />
+    {/* GitHub 경고 모달 */}
+    <GithubWarningModal
+      open={showWarningModal}
+      confirmationText={confirmationText}
+      confirmationError={confirmationError}
+      onChange={setConfirmationText}
+      onConfirm={handleConfirmWarning}
+      onCancel={handleCancelWarning}
+    />
     </>
   );
 };

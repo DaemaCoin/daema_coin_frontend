@@ -187,4 +187,20 @@ export const getLeaderboard = async (page = 0, limit = 10) => {
   }
 };
 
+// 오늘 채굴된 코인 수 조회 API
+export const getTodayMinedCoins = async () => {
+  try {
+    const response = await api.get('/coin/today-mined');
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    console.error('Today Mined Coins API 오류:', error);
+    return {
+      success: false,
+      error: axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message 
+        : '오늘 채굴된 코인 수 조회에 실패했습니다.'
+    };
+  }
+};
+
 export { GITHUB_LOGIN_URL }; 

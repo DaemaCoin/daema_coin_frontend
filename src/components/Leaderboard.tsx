@@ -18,108 +18,50 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
   const [hasMore, setHasMore] = useState(true);
   const { user } = useAuthStore();
   const scrollRef = useRef<HTMLDivElement>(null);
+  const observerTarget = useRef<HTMLDivElement>(null);
+
+  // 페이지네이션 상태를 추적하는 ref
+  const stateRef = useRef({
+    currentPage: 0,
+    hasMore: true,
+    isLoadingMore: false,
+    isLoading: true
+  });
+
+  // 상태 업데이트 시 ref도 함께 업데이트
+  useEffect(() => {
+    stateRef.current = {
+      currentPage,
+      hasMore,
+      isLoadingMore,
+      isLoading
+    };
+  }, [currentPage, hasMore, isLoadingMore, isLoading]);
 
   useEffect(() => {
     fetchLeaderboard(0, true);
   }, [limit]);
 
-  // throttle 함수 (스크롤 이벤트 최적화)
-  const throttle = useCallback((func: Function, limit: number) => {
-    let inThrottle: boolean;
-    return function(this: any, ...args: any[]) {
-      if (!inThrottle) {
-        func.apply(this, args);
-        inThrottle = true;
-        setTimeout(() => inThrottle = false, limit);
-      }
-    };
-  }, []);
-
-  const loadMoreLeaderboard = useCallback(async () => {
-    console.log('🔄 loadMoreLeaderboard 호출됨:', { hasMore, isLoadingMore, currentPage });
-    if (!hasMore || isLoadingMore) {
-      console.log('❌ 로딩 중단:', { hasMore, isLoadingMore });
+  const fetchLeaderboard = useCallback(async (page = 0, reset = false) => {
+    console.log('🚀 fetchLeaderboard 시작:', { page, reset, limit });
+    
+    // 중복 호출 방지
+    if (!reset && (stateRef.current.isLoadingMore || !stateRef.current.hasMore)) {
+      console.log('❌ 중복 호출 방지:', { 
+        isLoadingMore: stateRef.current.isLoadingMore, 
+        hasMore: stateRef.current.hasMore 
+      });
       return;
     }
-    console.log('📖 다음 페이지 로딩:', currentPage + 1);
-    await fetchLeaderboard(currentPage + 1, false);
-  }, [hasMore, isLoadingMore, currentPage]);
-
-  // Intersection Observer를 이용한 무한스크롤 (더 부드럽고 성능 좋음)
-  const observerTarget = useRef<HTMLDivElement>(null);
-
-  // 최신 상태를 참조하기 위한 ref
-  const hasMoreRef = useRef(hasMore);
-  const isLoadingMoreRef = useRef(isLoadingMore);
-  const currentPageRef = useRef(currentPage);
-
-  // ref 업데이트
-  useEffect(() => {
-    hasMoreRef.current = hasMore;
-    isLoadingMoreRef.current = isLoadingMore;
-    currentPageRef.current = currentPage;
-  }, [hasMore, isLoadingMore, currentPage]);
-
-  useEffect(() => {
-    console.log('🔭 Observer 설정');
-    
-    const observer = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        console.log('👁️ Observer 트리거:', { 
-          isIntersecting: entry.isIntersecting,
-          boundingClientRect: entry.boundingClientRect,
-          intersectionRatio: entry.intersectionRatio
-        });
-        
-        if (entry.isIntersecting) {
-          console.log('✨ 무한스크롤 조건 체크 중...');
-          console.log('📊 현재 상태:', {
-            hasMore: hasMoreRef.current,
-            isLoadingMore: isLoadingMoreRef.current,
-            currentPage: currentPageRef.current
-          });
-          
-          if (hasMoreRef.current && !isLoadingMoreRef.current) {
-            console.log('🚀 무한스크롤 실행!');
-            fetchLeaderboard(currentPageRef.current + 1, false);
-          } else {
-            console.log('❌ 무한스크롤 조건 불충족');
-          }
-        }
-      },
-      {
-        threshold: 0.1,
-        rootMargin: '50px',
-        root: null, // viewport를 기준으로 변경
-      }
-    );
-
-    const currentTarget = observerTarget.current;
-    if (currentTarget) {
-      console.log('🎯 Observer target 관찰 시작');
-      observer.observe(currentTarget);
-    } else {
-      console.warn('⚠️ Observer target이 없습니다!');
-    }
-
-    return () => {
-      if (currentTarget) {
-        console.log('🔴 Observer 정리');
-        observer.unobserve(currentTarget);
-      }
-    };
-  }, []); // 한 번만 설정
-
-  const fetchLeaderboard = async (page = 0, reset = false) => {
-    console.log('🚀 fetchLeaderboard 시작:', { page, reset, limit });
     
     if (reset) {
       setIsLoading(true);
+      setError(null);
+      stateRef.current.isLoading = true;
     } else {
       setIsLoadingMore(true);
+      stateRef.current.isLoadingMore = true;
     }
-    setError(null);
     
     try {
       const result = await getLeaderboard(page, limit);
@@ -137,17 +79,17 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
           totalUsers: response.totalUsers
         });
         
-        setLeaderboard(prev => {
-          const updated = reset ? newItems : [...prev, ...newItems];
-          console.log('📊 리더보드 업데이트:', { 
-            이전개수: prev.length, 
-            새로운개수: newItems.length, 
-            총개수: updated.length 
-          });
-          return updated;
-        });
+        if (reset) {
+          setLeaderboard(newItems);
+        } else {
+          setLeaderboard(prev => [...prev, ...newItems]);
+        }
+        
+        // 상태 업데이트
         setCurrentPage(response.currentPage);
         setHasMore(response.hasNext);
+        stateRef.current.currentPage = response.currentPage;
+        stateRef.current.hasMore = response.hasNext;
         
         console.log('🔄 상태 업데이트:', {
           currentPage: response.currentPage,
@@ -159,7 +101,9 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
         if (reset) {
           setLeaderboard(getDemoLeaderboard());
           setHasMore(false);
+          stateRef.current.hasMore = false;
         }
+        setError(result.error || '데이터를 불러올 수 없습니다.');
       }
     } catch (err) {
       // 네트워크 오류 시 데모 데이터 사용
@@ -167,14 +111,67 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
       if (reset) {
         setLeaderboard(getDemoLeaderboard());
         setHasMore(false);
+        stateRef.current.hasMore = false;
       }
+      setError('네트워크 오류가 발생했습니다.');
     } finally {
       setIsLoading(false);
       setIsLoadingMore(false);
+      stateRef.current.isLoading = false;
+      stateRef.current.isLoadingMore = false;
     }
-  };
+  }, [limit]);
 
+  // Intersection Observer 설정
+  useEffect(() => {
+    console.log('🔭 Observer 설정');
+    
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const [entry] = entries;
+        console.log('👁️ Observer 트리거:', { 
+          isIntersecting: entry.isIntersecting,
+          intersectionRatio: entry.intersectionRatio
+        });
+        
+        if (entry.isIntersecting) {
+          console.log('✨ 무한스크롤 조건 체크 중...');
+          console.log('📊 현재 상태:', {
+            hasMore: stateRef.current.hasMore,
+            isLoadingMore: stateRef.current.isLoadingMore,
+            currentPage: stateRef.current.currentPage
+          });
+          
+          if (stateRef.current.hasMore && !stateRef.current.isLoadingMore) {
+            console.log('🚀 무한스크롤 실행!');
+            fetchLeaderboard(stateRef.current.currentPage + 1, false);
+          } else {
+            console.log('❌ 무한스크롤 조건 불충족');
+          }
+        }
+      },
+      {
+        threshold: 0.1,
+        rootMargin: '50px',
+        root: null,
+      }
+    );
 
+    const currentTarget = observerTarget.current;
+    if (currentTarget) {
+      console.log('🎯 Observer target 관찰 시작');
+      observer.observe(currentTarget);
+    } else {
+      console.warn('⚠️ Observer target이 없습니다!');
+    }
+
+    return () => {
+      if (currentTarget) {
+        console.log('🔴 Observer 정리');
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [fetchLeaderboard]);
 
   const getDemoLeaderboard = (): LeaderboardEntry[] => {
     const currentUser = user;
@@ -199,38 +196,41 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
       },
       {
         rank: 4,
-        githubId: 'dev-genius',
+        githubId: 'dev-master',
         profileImageUrl: 'https://avatars.githubusercontent.com/u/4?v=4',
-        totalCoins: 7430
+        totalCoins: 8340
       },
       {
         rank: 5,
-        githubId: 'git-guru',
+        githubId: 'algorithm-god',
         profileImageUrl: 'https://avatars.githubusercontent.com/u/5?v=4',
-        totalCoins: 6200
+        totalCoins: 7820
+      },
+      {
+        rank: 6,
+        githubId: 'frontend-wizard',
+        profileImageUrl: 'https://avatars.githubusercontent.com/u/6?v=4',
+        totalCoins: 6950
+      },
+      {
+        rank: 7,
+        githubId: 'backend-guru',
+        profileImageUrl: 'https://avatars.githubusercontent.com/u/7?v=4',
+        totalCoins: 5780
       }
     ];
 
-    // 현재 사용자를 리스트에 추가 (순위는 코인 수에 따라 결정)
-    if (currentUser) {
-      const userCoins = currentUser.totalCoins || 0;
-      const userEntry: LeaderboardEntry = {
-        rank: 0, // 임시, 아래에서 정렬 후 설정
-        githubId: currentUser.githubUsername,
-        profileImageUrl: currentUser.avatar,
-        totalCoins: userCoins
-      };
-
-      demoUsers.push(userEntry);
+    // 현재 사용자가 있으면 리스트에 추가 (8등으로)
+    if (currentUser?.githubId) {
+      demoUsers.push({
+        rank: 8,
+        githubId: currentUser.githubId || currentUser.githubUsername || 'user',
+        profileImageUrl: currentUser.avatar || 'https://avatars.githubusercontent.com/u/0?v=4',
+        totalCoins: currentUser.totalCoins || 1000
+      });
     }
 
-    // 코인 수로 정렬하고 순위 설정
-    const sortedUsers = demoUsers
-      .sort((a, b) => b.totalCoins - a.totalCoins)
-      .map((user, index) => ({ ...user, rank: index + 1 }))
-      .slice(0, limit);
-
-    return sortedUsers;
+    return demoUsers;
   };
 
   const getRankIcon = (rank: number) => {
@@ -242,249 +242,185 @@ export default function Leaderboard({ limit = 10 }: LeaderboardProps) {
       case 3:
         return '🥉';
       default:
-        return `#${rank}`;
+        return `${rank}`;
     }
   };
 
   const formatCoins = (coins: number) => {
+    if (coins >= 1000000) {
+      return `${(coins / 1000000).toFixed(1)}M`;
+    }
+    if (coins >= 1000) {
+      return `${(coins / 1000).toFixed(1)}K`;
+    }
     return coins.toLocaleString();
   };
 
-  if (isLoading) {
-    return (
-      <div className="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-          <span className="text-xl mr-2">🏆</span>
-          리더보드
-        </h2>
-        <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <div key={i} className="flex items-center space-x-3 p-2 animate-pulse">
-              <div className="w-6 h-6 bg-gray-200 rounded-lg"></div>
-              <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-              <div className="flex-1">
-                <div className="h-3 bg-gray-200 rounded w-3/4 mb-1"></div>
-                <div className="h-2 bg-gray-200 rounded w-1/2"></div>
-              </div>
-              <div className="h-6 bg-gray-200 rounded-lg w-16"></div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
-        <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center">
-          <span className="text-xl mr-2">🏆</span>
-          리더보드
-        </h2>
-        <div className="text-center py-6">
-          <div className="text-3xl mb-2">😅</div>
-          <p className="text-gray-600 mb-4 text-sm">{error}</p>
-          <button
-            onClick={() => fetchLeaderboard(0, true)}
-            className="px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-200 font-medium shadow-md hover:shadow-lg text-sm"
-          >
-            다시 시도
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="bg-white rounded-2xl shadow-md p-4 border border-gray-100">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-bold text-gray-900 flex items-center">
-          <span className="text-xl mr-2">🏆</span>
-          리더보드
-        </h2>
-        <button
-          onClick={() => fetchLeaderboard(0, true)}
-          className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
-        >
-          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-          </svg>
-        </button>
-      </div>
-
-      {leaderboard.length === 0 ? (
-        <div className="text-center py-8">
-          <div className="text-3xl mb-3">🎯</div>
-          <p className="text-gray-500 text-sm">아직 등록된 사용자가 없습니다.</p>
+    <div className="bg-white rounded-2xl sm:rounded-3xl shadow-lg p-4 sm:p-6 border border-gray-100 h-fit">
+      <div className="space-y-4 sm:space-y-6">
+        {/* 헤더 */}
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 flex items-center">
+            <span className="text-xl sm:text-2xl lg:text-3xl mr-2 sm:mr-3">🏆</span>
+            리더보드
+          </h2>
+          <div className="flex items-center space-x-1 sm:space-x-2 bg-gradient-to-r from-yellow-50 to-orange-50 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg sm:rounded-xl border border-yellow-200">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-green-500 rounded-full animate-pulse"></div>
+            <span className="text-xs sm:text-sm text-yellow-700 font-semibold">
+              페이지 {currentPage} {hasMore ? '(더 있음)' : '(마지막)'}
+            </span>
+          </div>
         </div>
-      ) : (
-        <div 
-          ref={scrollRef} 
-          className="space-y-2 h-[300px] overflow-y-auto leaderboard-scroll"
-          onWheel={(e) => {
-            // 스크롤 이벤트가 부모로 전파되는 것을 방지
-            e.stopPropagation();
-          }}
-          onScroll={(e) => {
-            // 백업 스크롤 이벤트 (Observer가 작동하지 않을 때를 위해)
-            const target = e.currentTarget;
-            const { scrollTop, scrollHeight, clientHeight } = target;
-            const scrollPercentage = (scrollTop + clientHeight) / scrollHeight;
-            
-            console.log('📜 스크롤 이벤트:', {
-              scrollTop,
-              scrollHeight,
-              clientHeight,
-              scrollPercentage,
-              isNearBottom: scrollPercentage > 0.9
-            });
-            
-            if (scrollPercentage > 0.9 && hasMoreRef.current && !isLoadingMoreRef.current) {
-              console.log('🔄 백업 무한스크롤 실행!');
-              fetchLeaderboard(currentPageRef.current + 1, false);
-            }
-          }}
-        >
-          {leaderboard.map((entry, index) => {
-            const isCurrentUser = user && entry.githubId === user.githubUsername;
-            
-            return (
+
+        {/* 리더보드 리스트 */}
+        {isLoading ? (
+          <div className="space-y-3 sm:space-y-4">
+            {[...Array(5)].map((_, index) => (
+              <div key={index} className="animate-pulse">
+                <div className="bg-gray-50 rounded-xl sm:rounded-2xl p-3 sm:p-4 flex items-center space-x-3 sm:space-x-4">
+                  <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-200 rounded-full"></div>
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gray-200 rounded-full"></div>
+                  <div className="flex-1">
+                    <div className="h-3 sm:h-4 bg-gray-200 rounded w-3/4 mb-1 sm:mb-2"></div>
+                    <div className="h-2 sm:h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div 
+            className="leaderboard-scroll space-y-2 sm:space-y-3 max-h-64 sm:max-h-80 lg:max-h-96 overflow-y-auto pr-1 sm:pr-2"
+            onScroll={(e) => {
+              e.stopPropagation();
+            }}
+          >
+            {leaderboard.map((entry) => (
               <div
-                key={entry.githubId}
-                className={`relative overflow-hidden rounded-xl transition-all duration-200 hover:shadow-lg ${
-                  isCurrentUser
-                    ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
-                    : entry.rank <= 3
-                    ? 'bg-gradient-to-r from-yellow-50 via-orange-50 to-pink-50 border border-yellow-200 shadow-sm'
-                    : 'bg-gradient-to-r from-gray-50 to-gray-100 border border-gray-200 hover:from-gray-100 hover:to-gray-200'
+                key={`${entry.rank}-${entry.githubId}`}
+                className={`bg-gradient-to-r hover:shadow-md transition-all duration-300 rounded-xl sm:rounded-2xl p-3 sm:p-4 border ${
+                  user?.githubId === entry.githubId || user?.githubUsername === entry.githubId
+                    ? 'from-blue-50 to-indigo-50 border-blue-200 ring-2 ring-blue-100'
+                    : 'from-gray-50 to-gray-100 border-gray-200 hover:from-blue-50 hover:to-indigo-50'
                 }`}
               >
-                <div className="flex items-center p-3">
+                <div className="flex items-center space-x-3 sm:space-x-4">
                   {/* 순위 */}
-                  <div className="flex-shrink-0 w-8 text-center">
+                  <div className="flex-shrink-0">
                     {entry.rank <= 3 ? (
-                      <span className="text-lg">
+                      <div className="text-lg sm:text-xl lg:text-2xl">
                         {getRankIcon(entry.rank)}
-                      </span>
+                      </div>
                     ) : (
-                      <div className="w-6 h-6 bg-white rounded-lg flex items-center justify-center border border-gray-200 shadow-sm">
-                        <span className="text-xs font-bold text-gray-600">
-                          {entry.rank}
-                        </span>
+                      <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gradient-to-br from-gray-400 to-gray-500 rounded-full flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+                        {entry.rank}
                       </div>
                     )}
                   </div>
 
-                  {/* 아바타 */}
-                  <div className="flex-shrink-0 mr-3">
-                    <div className="relative">
-                      <img
-                        src={entry.profileImageUrl || '/default-avatar.png'}
-                        alt={`${entry.githubId}의 프로필`}
-                        className="w-9 h-9 rounded-lg border-2 border-white shadow-sm"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = '/default-avatar.png';
-                        }}
-                      />
-                      {entry.rank <= 3 && (
-                        <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-full flex items-center justify-center">
-                          <span className="text-xs text-white font-bold">★</span>
-                        </div>
-                      )}
-                    </div>
+                  {/* 프로필 이미지 */}
+                  <div className="flex-shrink-0">
+                    <img
+                      src={entry.profileImageUrl}
+                      alt={`${entry.githubId} 프로필`}
+                      className="w-8 h-8 sm:w-10 sm:h-10 lg:w-12 lg:h-12 rounded-full border-2 border-white shadow-sm"
+                      loading="lazy"
+                    />
                   </div>
 
                   {/* 사용자 정보 */}
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center space-x-2">
-                      <p className="font-semibold text-gray-900 truncate text-sm">
-                        {entry.githubId}
-                      </p>
-                      {isCurrentUser && (
-                        <span className="px-2 py-0.5 text-xs bg-gradient-to-r from-blue-500 to-indigo-500 text-white rounded-full font-medium">
-                          나
-                        </span>
-                      )}
-                    </div>
-                    <p className="text-xs text-gray-500 truncate">
-                      @{entry.githubId}
-                    </p>
-                  </div>
-
-                  {/* 코인 */}
-                  <div className="flex-shrink-0 text-right">
-                    <div className="bg-white rounded-lg p-2 shadow-sm border border-gray-200">
-                      <div className="flex items-center justify-end space-x-1">
-                        <span className="text-sm">🪙</span>
-                        <span className="font-bold text-gray-900 text-sm">
-                          {formatCoins(entry.totalCoins)}
-                        </span>
+                    <div className="flex items-center justify-between">
+                      <div className="min-w-0 flex-1">
+                        <p className={`font-bold truncate text-sm sm:text-base ${
+                          user?.githubId === entry.githubId || user?.githubUsername === entry.githubId
+                            ? 'text-blue-700'
+                            : 'text-gray-900'
+                        }`}>
+                          {entry.githubId}
+                          {(user?.githubId === entry.githubId || user?.githubUsername === entry.githubId) && (
+                            <span className="ml-1 sm:ml-2 text-xs bg-blue-100 text-blue-600 px-1.5 sm:px-2 py-0.5 rounded-full">
+                              ME
+                            </span>
+                          )}
+                        </p>
                       </div>
-                      <div className="text-xs text-gray-500">DMC</div>
+                      
+                      {/* 코인 정보 */}
+                      <div className="text-right ml-2 sm:ml-3">
+                        <div className="flex items-center space-x-1">
+                          <span className="text-yellow-500 text-sm sm:text-base">🪙</span>
+                          <span className="font-black text-gray-900 text-sm sm:text-base">
+                            {formatCoins(entry.totalCoins)}
+                          </span>
+                        </div>
+                        <p className="text-xs text-gray-500">DMC</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-
-                {/* 배경 장식 */}
-                {entry.rank <= 3 && (
-                  <div className="absolute top-0 right-0 w-12 h-12 opacity-10">
-                    <div className="w-full h-full bg-gradient-to-bl from-yellow-400 to-orange-500 rounded-bl-full"></div>
-                  </div>
-                )}
               </div>
-            );
-          })}
+            ))}
 
-          {/* Intersection Observer 타겟 (무한스크롤 트리거) */}
-          {hasMore && (
-            <div 
-              ref={observerTarget} 
-              className="h-1 bg-red-200" 
-              style={{ visibility: 'visible' }}
+            {/* 무한스크롤 트리거 */}
+            <div ref={observerTarget} className="h-2 sm:h-4"></div>
+
+            {/* 로딩 인디케이터 */}
+            {isLoadingMore && (
+              <div className="text-center py-3 sm:py-4">
+                <div className="inline-flex items-center px-3 sm:px-4 py-1.5 sm:py-2 bg-blue-50 text-blue-600 rounded-full text-xs sm:text-sm">
+                  <div className="animate-spin rounded-full h-3 h-3 sm:h-4 sm:w-4 border-b-2 border-blue-600 mr-2"></div>
+                  더 많은 사용자 불러오는 중...
+                </div>
+              </div>
+            )}
+
+            {/* 수동 더 보기 버튼 (디버깅용) */}
+            {hasMore && !isLoadingMore && leaderboard.length > 0 && (
+              <div className="text-center py-3 sm:py-4">
+                <button
+                  onClick={() => fetchLeaderboard(currentPage + 1, false)}
+                  className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors"
+                >
+                  더 보기 (페이지 {currentPage + 1})
+                </button>
+              </div>
+            )}
+
+            {/* 끝 표시 */}
+            {!hasMore && leaderboard.length > 0 && (
+              <div className="text-center py-3 sm:py-4">
+                <p className="text-xs sm:text-sm text-gray-500">모든 사용자를 불러왔습니다 ✨</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 에러 상태 */}
+        {error && (
+          <div className="text-center py-6 sm:py-8">
+            <div className="text-red-500 text-sm sm:text-base mb-2">⚠️ {error}</div>
+            <button
+              onClick={() => {
+                setError(null);
+                fetchLeaderboard(0, true);
+              }}
+              className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-xs sm:text-sm transition-colors"
             >
-              {/* 디버깅용 표시 */}
-              <div className="text-xs text-center text-red-500">Observer Target</div>
-            </div>
-          )}
-          
-          {/* 디버깅 정보 */}
-          <div className="text-xs text-center text-gray-400 p-2">
-            Debug: hasMore={hasMore.toString()}, isLoadingMore={isLoadingMore.toString()}, 
-            currentPage={currentPage}, leaderboard길이={leaderboard.length}
+              다시 시도
+            </button>
           </div>
+        )}
 
-          {/* 로딩 인디케이터 */}
-          {isLoadingMore && (
-            <div className="flex items-center justify-center py-4">
-              <div className="flex items-center space-x-2">
-                <div className="w-4 h-4 border-2 border-blue-200 border-t-blue-500 rounded-full animate-spin"></div>
-                <span className="text-gray-600 text-xs">더 불러오는 중...</span>
-              </div>
-            </div>
-          )}
-
-          {/* 더 이상 데이터가 없을 때 */}
-          {!hasMore && leaderboard.length > 0 && (
-            <div className="text-center py-3">
-              <div className="flex items-center justify-center space-x-2 text-gray-500">
-                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-                <span className="text-xs">모든 사용자를 확인했습니다</span>
-                <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* 하단 정보 */}
-      <div className="mt-4 pt-3 border-t border-gray-200">
-        <div className="flex items-center justify-between text-xs">
-          <div className="flex items-center space-x-1">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="text-gray-600">실시간 업데이트</span>
+        {/* 빈 상태 */}
+        {!isLoading && !error && leaderboard.length === 0 && (
+          <div className="text-center py-8 sm:py-12">
+            <div className="text-4xl sm:text-5xl lg:text-6xl mb-4">🏆</div>
+            <p className="text-gray-500 text-sm sm:text-base mb-2">아직 참가자가 없습니다</p>
+            <p className="text-gray-400 text-xs sm:text-sm">첫 번째 채굴자가 되어보세요!</p>
           </div>
-          <span className="text-gray-500">상위 {leaderboard.length}명</span>
-        </div>
+        )}
       </div>
     </div>
   );
