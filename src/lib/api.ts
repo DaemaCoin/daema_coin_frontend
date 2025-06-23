@@ -203,4 +203,39 @@ export const getTodayMinedCoins = async () => {
   }
 };
 
+// 사용자 목록 조회 API (페이지네이션)
+export const getUsers = async (page = 0, take = 20) => {
+  try {
+    const response = await api.get(`/auth/users?page=${page}&take=${take}`);
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    console.error('Users API 오류:', error);
+    return {
+      success: false,
+      error: axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message 
+        : '사용자 목록 조회에 실패했습니다.'
+    };
+  }
+};
+
+// 코인 송금 API
+export const transferCoin = async (to: string, amount: number) => {
+  try {
+    const response = await api.post('/coin/transfer', {
+      to,
+      amount
+    });
+    return { success: true, data: response.data };
+  } catch (error: unknown) {
+    console.error('Transfer API 오류:', error);
+    return {
+      success: false,
+      error: axios.isAxiosError(error) && error.response?.data?.message
+        ? error.response.data.message 
+        : '송금에 실패했습니다.'
+    };
+  }
+};
+
 export { GITHUB_LOGIN_URL }; 

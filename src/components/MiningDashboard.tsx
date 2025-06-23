@@ -311,7 +311,7 @@ const MiningDashboard: React.FC = () => {
                       
                       <div className="text-right ml-3 sm:ml-4">
                         <p className="font-black text-green-600 text-sm sm:text-lg flex items-center">
-                          +{tx.amount.toLocaleString()}
+                          {tx.amount.toLocaleString()}
                           <Coins className="w-3 h-3 sm:w-4 sm:h-4 ml-1 text-yellow-500" />
                         </p>
                         <p className="text-xs text-gray-500">DMC</p>
