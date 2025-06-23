@@ -43,7 +43,7 @@ body {
   }
 
   .toss-input {
-    @apply w-full px-4 py-4 rounded-xl border border-gray-200 focus:border-blue-500 focus:outline-none transition-colors;
+    @apply w-full px-4 py-4 rounded-xl border border-gray-200 focus:border-blue-500 focus:outline-none transition-colors text-gray-900;
   }
 }
 
