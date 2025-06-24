@@ -286,7 +286,7 @@ const MiningDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <h2 className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900 flex items-center">
               <span className="text-xl sm:text-2xl lg:text-3xl mr-2 sm:mr-3">📝</span>
-              최근 커밋 내역
+              코인 내역
             </h2>
             <div className="flex items-center space-x-1 sm:space-x-2 bg-yellow-50 px-2 sm:px-4 py-1 sm:py-2 rounded-xl sm:rounded-2xl border border-yellow-200">
               <Trophy className="w-3 h-3 sm:w-5 sm:h-5 text-yellow-500" />
