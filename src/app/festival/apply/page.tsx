@@ -57,7 +57,7 @@ export default function StoreApplyPage() {
       <div className="max-w-md mx-auto px-4">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-900 mb-2">상점 입점 신청</h1>
-          <p className="text-gray-600">데마코인 페스티벌에 참여할 상점을 등록해보세요</p>
+          <p className="text-gray-600">대마코인 페스티벌에 참여할 상점을 등록해보세요</p>
         </div>
 
         <Card>

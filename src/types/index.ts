@@ -126,6 +126,10 @@ export interface UserProfile {
   githubId: string;
   githubImageUrl: string;
   totalCommits: number;
+  // API 응답에서 다른 형태로 올 수 있는 커밋 관련 필드들
+  commits?: number;
+  commitCount?: number;
+  total_commits?: number;
 }
 
 export interface LeaderboardEntry {

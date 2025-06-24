@@ -388,7 +388,8 @@ export const useAuthStore = create<AuthStore>()(
         try {
           const result = await getUserInfo();
           if (result.success && result.data) {
-            console.log('사용자 프로필 정보 조회 성공');
+            console.log('사용자 프로필 정보 조회 성공:', result.data);
+            console.log('totalCommits 값:', result.data.totalCommits);
             set({ userProfile: result.data });
           } else {
             console.error('사용자 프로필 정보 조회 실패:', result.error);

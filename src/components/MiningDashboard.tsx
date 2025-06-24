@@ -51,6 +51,20 @@ const MiningDashboard: React.FC = () => {
     // eslint-disable-next-line
   }, []);
 
+  // userProfile 상태 디버깅
+  React.useEffect(() => {
+    console.log('📊 MiningDashboard - userProfile 상태:', userProfile);
+    if (userProfile) {
+      console.log('📊 MiningDashboard - totalCommits:', userProfile.totalCommits);
+      console.log('📊 MiningDashboard - commits:', userProfile.commits);
+      console.log('📊 MiningDashboard - commitCount:', userProfile.commitCount);
+      console.log('📊 MiningDashboard - total_commits:', userProfile.total_commits);
+      
+      const displayedCommits = userProfile?.totalCommits || userProfile?.commits || userProfile?.commitCount || userProfile?.total_commits || 0;
+      console.log('📊 MiningDashboard - 실제 표시될 커밋 수:', displayedCommits);
+    }
+  }, [userProfile]);
+
   // 최적화된 무한스크롤 (Intersection Observer 사용)
   React.useEffect(() => {
     const observer = new IntersectionObserver(
@@ -254,7 +268,7 @@ const MiningDashboard: React.FC = () => {
             <div>
               <p className="text-xs sm:text-sm text-gray-600 font-semibold mb-1 sm:mb-2">총 커밋 수</p>
               <p className="text-xl sm:text-2xl lg:text-3xl font-black text-gray-900">
-                {userProfile?.totalCommits || 0}
+                {userProfile?.totalCommits || userProfile?.commits || userProfile?.commitCount || userProfile?.total_commits || 0}
               </p>
               <p className="text-sm sm:text-lg font-bold text-blue-600">commits</p>
             </div>
